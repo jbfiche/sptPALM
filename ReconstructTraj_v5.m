@@ -1,3 +1,28 @@
+%*****************************
+%
+% ReconstructTraj_v5.m
+%
+% ****************************
+%
+% JB Fiche
+% Feb, 2020
+% fiche@cbs.cnrs.fr
+% -------------------------------------------------------------------------
+% Purpose: This function is reading all the selected mat files created by
+% MTT and creating a variable called "Reconstructed_Traj" where all the
+% trajectories (even the single events) are saved. 
+% Also, if the "Save trajectories for Tesseler" is checked, two txt files
+% are created. One with the X,Y positions of ALL the events detected bt
+% MTT. The other with the mean X,Y positions of each trajectories. 
+% -------------------------------------------------------------------------
+% Specific: 
+% -------------------------------------------------------------------------
+% To fix: 
+% -------------------------------------------------------------------------
+% Copyright Centre National de la Recherche Scientifique, 2020.
+
+
+
 function h = ReconstructTraj_v5(h)
 
 FileToAnalyse = h.FileToAnalyse;
@@ -5,11 +30,11 @@ AcquisitionTime = str2double(get(h.AcquisitionTime, 'String')); % in ms
 PixelSize = str2double(get(h.PixelSize, 'String')); % in �m
 FontSize = h.FontSize;
 
-%% Ask whether all the detections whould be saved
-%% in a separate .txt file
-%% =======================
+%% Check whether all the detections should be saved
+%% in a separate .txt file for Tesseler analysis
+%% =============================================
 
- CreateTesselerFile = questdlg('Do you want to create a .txt file will all the trajectories? "', 'Add tag', 'Yes', 'No', 'No');
+CreateTxtFile = h.Save_traj_txt.Value;
 
 %% Open the figure where the results will be saved
 %% ===============================================
@@ -40,7 +65,7 @@ for Nfiles = 1 : numel(FileToAnalyse)
     % The arrays Xmatrix and Ymatrix are analyzed in order to detect the
     % presence of NaN. They usually means that for a specific frame, there
     % was non detection and the columns is filled with NaN and 0... not
-    % clear why there is a mixture of both though! 
+    % clear why there is a mixture of both though!
     % In order to avoid the creation of artefactual trajectories (very long
     % ones), all the 0 of the columns are converted to NaN
     % ----------------------------------------------------
@@ -60,7 +85,7 @@ for Nfiles = 1 : numel(FileToAnalyse)
     % The NaN can introduced errors when calculating the distance D. For
     % particular experiments where the number of detected particles is
     % really low, there will be a lot of events were a NaN will be added to
-    % the X/Ymatrix files (this is because a NaN is added when no particle 
+    % the X/Ymatrix files (this is because a NaN is added when no particle
     % was detected). In that case, when a NaN is detected at frame
     % n>1, it will be automatically replaced by the value detected for
     % frame n-1
@@ -89,20 +114,19 @@ for Nfiles = 1 : numel(FileToAnalyse)
             end
         end
     end
-                
+    
     % For the files generated on the MARS platforme, they are usually
     % called AC0, AC1, AC2, ... and can therefore be orderd as a function
-    % of acquisition time. 
+    % of acquisition time.
     % -------------------
     
     [~,MTTFileName,~] = fileparts(FileToAnalyse{Nfiles});
     if isequal(MTTFileName(1:2), 'AC')
-%         FileNumber = str2double(MTTFileName(3:end-4));
         FileNumber = str2double(MTTFileName(3:4));
     else
         FileNumber = NFiles-1;
     end
-        
+    
     NFrames = size(m.Xmatrix, 2);
     hwaitbar = waitbar(0,strcat('Calculating the trajectories for file #', num2str(Nfiles)));
     
@@ -118,17 +142,17 @@ for Nfiles = 1 : numel(FileToAnalyse)
         %
         % 1- When a particle is detected at the frame #n, the value assigned
         % to Xmatrix and Ymatrix for ALL the frames before n (1 : n-1) is
-        % set to 0. 
+        % set to 0.
         % 2- When a particle is lost, the soft keep adding the same
-        % positions to the output .txt file except if there was no detection 
+        % positions to the output .txt file except if there was no detection
         % at all. In that case, a NaN is added... for this specific
         % situation, all the NaN are then replaced by the value of the
         % preciding column.
         
-        % As a result, when calculating the distance between successive 
+        % As a result, when calculating the distance between successive
         % detections, most of the trajectories have a D equal to 0. Therefore,
-        % below, each trajectory is defined by the points comprised between 
-        % the very first detection (the first non-zero values of X and Y) 
+        % below, each trajectory is defined by the points comprised between
+        % the very first detection (the first non-zero values of X and Y)
         % and the last non-zero detection (that is, the last non-zero value
         % of D)
         
@@ -136,9 +160,9 @@ for Nfiles = 1 : numel(FileToAnalyse)
         % is also calculated for each trajectory and saved in
         % "SingleStep_Length".
         % --------------------
-
+        
         Idx_FirstDetection = find(X>0 & Y>0,1);
-        D = sqrt((X(Idx_FirstDetection+1:end)-X(Idx_FirstDetection:end-1)).^2 + (Y(Idx_FirstDetection+1:end)-Y(Idx_FirstDetection:end-1)).^2); 
+        D = sqrt((X(Idx_FirstDetection+1:end)-X(Idx_FirstDetection:end-1)).^2 + (Y(Idx_FirstDetection+1:end)-Y(Idx_FirstDetection:end-1)).^2);
         Idx = find(D>0);
         
         if size(Idx,2)>=2 && ~isempty(Idx_FirstDetection)
@@ -157,42 +181,41 @@ for Nfiles = 1 : numel(FileToAnalyse)
             end
         end
         
-        % In case it is necessary (option added for Alexandre), all the
+        % In case it is necessary, all the
         % detections are saved below in a .txt file
         % -----------------------------------------
         
-        switch CreateTesselerFile
-            case 'Yes'
+        if CreateTxtFile
+            
+            if size(Idx,2)>0 && ~isempty(Idx_FirstDetection)
                 
-                if size(Idx,2)>0 && ~isempty(Idx_FirstDetection)
-                    
-                    x = transpose(X(Idx_FirstDetection:Idx_FirstDetection+Idx(end)));
-                    y = transpose(Y(Idx_FirstDetection:Idx_FirstDetection+Idx(end)));
-                    i = transpose(I(Idx_FirstDetection:Idx_FirstDetection+Idx(end)));
-                    t = transpose(NFrames*FileNumber+(Idx_FirstDetection:Idx_FirstDetection+Idx(end)));             
-                    idx = i(:)>0;
-                    
-                    L = sum(idx);
-                    x_av = sum(x(idx))/L;
-                    y_av = sum(y(idx))/L;
-                    i_av = sum(i(idx))/L;
-   
-                    Localizations_all = cat(1, Localizations_all, [x(idx),y(idx), i(idx),t(idx)]);
-                    Localizations_all_average = cat(1, Localizations_all_average, [x_av, y_av, i_av, L]);
-                    
-                elseif size(Idx,2)==0 && ~isempty(Idx_FirstDetection)
-                    
-                    x = X(Idx_FirstDetection);
-                    y = Y(Idx_FirstDetection);
-                    i = I(Idx_FirstDetection);
-                    t = NFrames*FileNumber+Idx_FirstDetection;
-                    idx = i(:)>0;
-                    
-                    Localizations_all = cat(1, Localizations_all, [x(idx),y(idx), i(idx),t(idx)]);
-                    Localizations_all_average = cat(1, Localizations_all_average, [x, y, i, 1]);
-                    
-                end
-        end   
+                x = transpose(X(Idx_FirstDetection:Idx_FirstDetection+Idx(end)));
+                y = transpose(Y(Idx_FirstDetection:Idx_FirstDetection+Idx(end)));
+                i = transpose(I(Idx_FirstDetection:Idx_FirstDetection+Idx(end)));
+                t = transpose(NFrames*FileNumber+(Idx_FirstDetection:Idx_FirstDetection+Idx(end)));
+                idx = i(:)>0;
+                
+                L = sum(idx);
+                x_av = sum(x(idx))/L;
+                y_av = sum(y(idx))/L;
+                i_av = sum(i(idx))/L;
+                
+                Localizations_all = cat(1, Localizations_all, [x(idx),y(idx), i(idx),t(idx)]);
+                Localizations_all_average = cat(1, Localizations_all_average, [x_av, y_av, i_av, L]);
+                
+            elseif size(Idx,2)==0 && ~isempty(Idx_FirstDetection)
+                
+                x = X(Idx_FirstDetection);
+                y = Y(Idx_FirstDetection);
+                i = I(Idx_FirstDetection);
+                t = NFrames*FileNumber+Idx_FirstDetection;
+                idx = i(:)>0;
+                
+                Localizations_all = cat(1, Localizations_all, [x(idx),y(idx), i(idx),t(idx)]);
+                Localizations_all_average = cat(1, Localizations_all_average, [x, y, i, 1]);
+                
+            end
+        end
     end
     close(hwaitbar);
 end
@@ -205,23 +228,21 @@ set(h.NTrajectories, 'String', num2str(size(Reconstructed_Traj,1))); % Display t
 %% If needed, all the positions are saved in a .txt file
 %% =====================================================
 
-switch CreateTesselerFile
-    case 'Yes'
-        FileID = fopen('Localizations.txt', 'w+');
-        fprintf(FileID,'x,y,intensity,frame\r\n');
-        
-        [~, Idx] = sort(Localizations_all(:,4));
-        size(Idx)
-        Localizations_all = Localizations_all(Idx,:);
-        dlmwrite('Localizations.txt', Localizations_all,'-append','precision', '%f', 'newline','pc')
-        
-        fileID_av = fopen('Localizations_average.txt', 'w+');
-        fprintf(fileID_av,'x_mean,y_mean,intensity_mean,traj_length\r\n');
-        
-        [~, Idx] = sort(Localizations_all_average(:,4));
-        size(Idx)
-        Localizations_all_average = Localizations_all_average(Idx,:);
-        dlmwrite('Localizations_average.txt', Localizations_all_average,'-append','precision', '%f', 'newline','pc')
+if CreateTxtFile
+    
+    FileID = fopen('Localizations.txt', 'w+');
+    fprintf(FileID,'x,y,intensity,frame\r\n');
+    
+    [~, Idx] = sort(Localizations_all(:,4));
+    Localizations_all = Localizations_all(Idx,:);
+    dlmwrite('Localizations.txt', Localizations_all,'-append','precision', '%f', 'newline','pc')
+    
+    fileID_av = fopen('Localizations_average.txt', 'w+');
+    fprintf(fileID_av,'x_mean,y_mean,intensity_mean,traj_length\r\n');
+    
+    [~, Idx] = sort(Localizations_all_average(:,4));
+    Localizations_all_average = Localizations_all_average(Idx,:);
+    dlmwrite('Localizations_average.txt', Localizations_all_average,'-append','precision', '%f', 'newline','pc')
 end
 
 %% Calculate and plot the empirical cumulative distribution of the length
@@ -260,34 +281,32 @@ axis square
 axis([0 max(x2) 0 1])
 box on
 ax.FontSize = FontSize;
-xlabel('Step length (�m)')
+xlabel('Step length (um)')
 ylabel('Cumulative distribution')
 title('Cumulative distribution of the step length')
-legend(sprintf('All values, Lmax = %.2f �m', max(x1)), ...
-    sprintf('All values without the 0.5%% longest, Lmax = %.2f �m', max(x2)), ...
-    sprintf('All values without the 1%% longest, Lmax = %.2f �m', max(x3)), ...
-    sprintf('All values without the 1.5%% longest, Lmax = %.2f �m', max(x4)), ...
-    sprintf('All values without the 2%% longest, Lmax = %.2f �m', max(x5)),'Location', 'southeast');
+legend(sprintf('All values, Lmax = %.2f um', max(x1)), ...
+    sprintf('All values without the 0.5%% longest, Lmax = %.2f um', max(x2)), ...
+    sprintf('All values without the 1%% longest, Lmax = %.2f um', max(x3)), ...
+    sprintf('All values without the 1.5%% longest, Lmax = %.2f um', max(x4)), ...
+    sprintf('All values without the 2%% longest, Lmax = %.2f um', max(x5)),'Location', 'southeast');
 
-export_fig(hPlot, 'Cumulative_Distribution_LengthStep.png');
-% export_fig(hPlot, 'Cumulative_Distribution_LengthStep.pdf', '-pdf');
+saveas(hPlot, 'Cumulative_Distribution_LengthStep.png');
 
-% Replot the zoom on the part representing the 10 last percents of the
-% cumulative distribution
-% -----------------------
-
-axis([0 max(x2) 0.9 1])
-axis square
-
-export_fig(hPlot, 'Cumulative_Distribution_LengthStep_ZOOM.png');
-% export_fig(hPlot, 'Cumulative_Distribution_LengthStep_ZOOM.pdf', '-pdf');
+% % Replot the zoom on the part representing the 10 last percents of the
+% % cumulative distribution
+% % -----------------------
+% 
+% axis([0 max(x2) 0.9 1])
+% axis square
+% 
+% saveas(hPlot, 'Cumulative_Distribution_LengthStep_ZOOM.png');
 
 %% Plot the distribution of the trajectories lengths. Since some
 %% trajectories can be very long as compared to the vast majority of the
 %% trajectories, the graph can sometimes be streched out and make the
 %% visualization of the distribution quite complicated. To avoid this issue,
 %% the binning is limited to the range of lengths representing 99% of the
-%% trajectories. The 1% longest remaining are artificially combined in the 
+%% trajectories. The 1% longest remaining are artificially combined in the
 %% last bin.
 %% ========
 
@@ -337,8 +356,6 @@ title('Trajectories duration distribution')
 xlabel('Trajectories duration (s)')
 ylabel('Counts')
 legend('Length distribution', '80% limit', '90% limit', 'Location', 'northeast')
-
-export_fig(hPlot, 'Trajectories_duration.png');
-% export_fig(hPlot, 'Trajectories_duration.pdf', '-pdf');
+saveas(hPlot, 'Trajectories_duration.png');
 
 close(hPlot)

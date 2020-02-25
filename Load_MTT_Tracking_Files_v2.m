@@ -1,3 +1,22 @@
+%*****************************
+%
+% Load_MTT_Tracking_Files_v2.m
+%
+% ****************************
+%
+% JB Fiche
+% Feb, 2020
+% fiche@cbs.cnrs.fr
+% -------------------------------------------------------------------------
+% Purpose: Load the mat files obtained as output from the MTT software.  
+% -------------------------------------------------------------------------
+% Specific: 
+% -------------------------------------------------------------------------
+% To fix: 
+% -------------------------------------------------------------------------
+% Copyright Centre National de la Recherche Scientifique, 2020.
+
+
 function [h, Repeat_Analysis] = Load_MTT_Tracking_Files_v2(h)
 
 %% Check whether an analysis was already run for this folder and
@@ -8,17 +27,23 @@ DirectoryName = uigetdir;
 cd(DirectoryName)
 set(h.FolderPath_Text, 'String', DirectoryName); % Display on the GUI the folder path
 
-PreviousAnalysis = ~isempty(dir('*MTT_sptPALM_analysis*.mat'));
+PreviousAnalysis = ~isempty(dir(h.ResultsFileName));
 
 if PreviousAnalysis
-    Repeat_Analysis = questdlg('A previous analysis was found. Do you want to used it?', 'Repeat?', 'Yes', 'No', 'Yes');
+    Repeat_Analysis = questdlg('A previous analysis with the same name was found. Do you want to used it?',...
+        'Reuse?', 'Load previous analysis', 'Erase', 'Cancel', 'Yes');
 else
     Repeat_Analysis = 'No';
 end
 
 switch Repeat_Analysis
     
-    case 'Yes'
+    case 'Cancel'
+
+        return
+        
+    case 'Load previous analysis'
+        
         set(h.PlotPreviousAnalysis, 'Enable', 'on')
         h = sptPALM_initialize(h, 'LoadPreviousData');
         
@@ -35,13 +60,14 @@ switch Repeat_Analysis
             end
         end
     
-    case 'No'
+    case 'Erase'
+        
         set(h.PlotPreviousAnalysis, 'Enable', 'off')
         
         %% Analyse the containt of the folder and look for all the .mat files
         %% ==================================================================
                
-        FileToAnalyse = LookForDirectories_spt(DirectoryName);
+        FileToAnalyse = LookForDirectories_spt(DirectoryName, h.MTT_FileName.String);
 
         %% Check the .mat files are related to the MTT analysis or something else.
         %% Only the MTT .mat files are kept. The others are discarded.

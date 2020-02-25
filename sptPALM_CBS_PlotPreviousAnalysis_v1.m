@@ -1,7 +1,7 @@
 function sptPALM_CBS_PlotPreviousAnalysis_v1(h)
 
 PlotType = get(h.DataTypePlot, 'Value');
-NbrLorentzianFit = h.NbrLorentzianFit;
+NbrGaussianFit = h.NbrGaussianFit;
 
 hPlot = figure;
 set(0,'Units','pixels'); %Define the type of units used later for the position (here in pixels)
@@ -20,56 +20,53 @@ switch PlotType
         FittedDiffDistribution = h.FittedDiffDistribution;
         D_mean = h.D_mean;
         
-        switch NbrLorentzianFit
+        switch NbrGaussianFit
             case 1
                               
-                Bin = DiffDistribution(1,:);
-                N = DiffDistribution(2,:);
-                BinFit = FittedDiffDistribution(1,:);
-                LorentzFit = FittedDiffDistribution(2,:);
+                Bin = DiffDistribution(:,1);
+                N = DiffDistribution(:,2);
+                BinFit = FittedDiffDistribution(:,1);
+                GaussianFit = FittedDiffDistribution(:,2);
                 
-                bar(Bin', N', 'FaceColor', [0 0.4 1]);
+                bar(Bin, N, 'FaceColor', [0 0.4 1]);
                 hold on
-                plot(BinFit, LorentzFit, '--k', 'LineWidth',1);
+                plot(BinFit, GaussianFit, '--k', 'LineWidth',1);
                 
             case 2
                 
                 F = h.Fraction;
                 
-                Bin = DiffDistribution(1,:);
-                N1_norm = DiffDistribution(2,:);
-                N2_norm = DiffDistribution(3,:);
-                BinFit = FittedDiffDistribution(1,:);
-                LorentzFit1 = FittedDiffDistribution(2,:);
-                LorentzFit2 = FittedDiffDistribution(3,:);
-                LorentzFitAll = FittedDiffDistribution(4,:);
+                Bin = DiffDistribution(:,1);
+                N1_norm = DiffDistribution(:,2);
+                N2_norm = DiffDistribution(:,3);
+                BinFit = FittedDiffDistribution(:,1);
+                GaussianFit1 = FittedDiffDistribution(:,2);
+                GaussianFit2 = FittedDiffDistribution(:,3);
+                GaussianFitAll = FittedDiffDistribution(:,4);
                 
-                b = bar(Bin', cat(2, N1_norm', N2_norm'), 'stacked');
-                b(1).FaceColor = [1 0.5 0];
-                b(2).FaceColor = [0 0.4 1];
-                
+                bar(Bin, cat(2, N1_norm, N2_norm), 'stacked');
                 hold on
-                plot(BinFit, LorentzFit1, '-r', 'LineWidth',1)
-                plot(BinFit, LorentzFit2, '-b', 'LineWidth',1)
-                plot(BinFit, LorentzFitAll, '--k', 'LineWidth',1)
+                plot(BinFit, GaussianFit1, '-r', 'LineWidth',1)
+                plot(BinFit, GaussianFit2, '-b', 'LineWidth',1)
+                plot(BinFit, GaussianFitAll, '--k', 'LineWidth',1)
         end
         
         ax.FontSize = h.FontSize;
         axis square
         box on
-        xlabel('Log of apparent diffusion coefficient (µm²/s)')
+        xlabel('Log of apparent diffusion coefficient (umÂ²/s)')
         ylabel('Fraction of molecule (%)')
         
-        for n = 1 : NbrLorentzianFit
+        for n = 1 : NbrGaussianFit
             
-            NewLine = sprintf('log(D_%d) = %.2f µm²/s', n, D_mean(1,n));
+            NewLine = sprintf('log(D_%d) = %.2f umÂ²/s', n, D_mean(1,n));
             if n>1
                 Title = strvcat(Title, NewLine);
             else
                 Title = NewLine;
             end
             
-            if NbrLorentzianFit>1 && n>1
+            if NbrGaussianFit>1 && n>1
                 NewLine = sprintf('Mobile fraction : %d%%', F);
                 Title = strvcat(Title, NewLine);
             end
@@ -89,7 +86,7 @@ switch PlotType
         Lag = 1 : 1 : size(MSD_FIT,1);
         
         
-        if NbrLorentzianFit == 2
+        if NbrGaussianFit == 2
             
             MSD_1 = MSD_FIT(:,1:3);
             MSD_2 = MSD_FIT(:,4:6);
@@ -109,9 +106,9 @@ switch PlotType
             ax.FontSize = FontSize;
             box on
             xlabel('Time(s)')
-            ylabel('MSD (µm²)')
+            ylabel('MSD (umÂ²)')
             
-            Title = sprintf('log(D_1) = %.2f µm²/s -- log(D_2) = %.2f µm²/s', D_mean(1,1), D_mean(1,2));
+            Title = sprintf('log(D_1) = %.2f umÂ²/s -- log(D_2) = %.2f umÂ²/s', D_mean(1,1), D_mean(1,2));
             title(Title);
             legend('D1 average', 'D2 average', 'D1 median', 'D2 median', 'Location', 'northwest');
             
@@ -131,7 +128,7 @@ switch PlotType
             box on
             ax.FontSize = FontSize;
             xlabel('Time(s)')
-            ylabel('MSD (µm²/s)')
+            ylabel('MSD (umÂ²/s)')
             legend('Mean values', 'Median values', 'Location', 'northwest')
             
         end
@@ -198,7 +195,7 @@ switch PlotType
         
     case 4
         
-        if NbrLorentzianFit == 1
+        if NbrGaussianFit == 1
             hwarn = warndlg('This kind of plot cannot be plotted for this analysis, only one population was fitted');
             uiwait(hwarn)
             close(hPlot)

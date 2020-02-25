@@ -1,17 +1,37 @@
+%*****************************
+%
+% MTT_Trajectory_analysis_v4.m
+%
+% ****************************
+%
+% JB Fiche
+% Feb, 2020
+% fiche@cbs.cnrs.fr
+% -------------------------------------------------------------------------
+% Purpose: This function is used to calculate the MSD and instant diffusion
+% coefficient of each trajectories. 
+% -------------------------------------------------------------------------
+% Specific: 
+% -------------------------------------------------------------------------
+% To fix: 
+% -------------------------------------------------------------------------
+% Copyright Centre National de la Recherche Scientifique, 2020.
+
+
 function h = MTT_Trajectory_analysis_v4(h)
 
 %% Parameter for the analysis
 %% ==========================
 
-MaxBlinks = str2num(get(h.MaxBlinks, 'String')); % Maximum number of frames two successive detections can be separated of
-MinNPoint = str2num(get(h.MinNumberPoints, 'String')); % Minimum number of frames for each trajectory
-MinTrajLength_MSDCalculation = str2num(get(h.MinTrajLength, 'String')); % Minium number of frames for the trajectories used for the calculation of the MSD
-AcquisitionTime = str2num(get(h.AcquisitionTime, 'String')); % in ms
-PixelSize = str2num(get(h.PixelSize, 'String')); %  in µm
-MaxDisplayTime = str2num(get(h.MaxDisplayTime, 'String')); % The MSD curve will be displayed only from zero to this value in s
-p = str2num(get(h.NumberPointsMSDFit, 'String')); % Use the first "p" points of the MSD to estimate the Dapp
-MinNPointMSD = str2num(get(h.MinimumNumberPointsMSD, 'String')); % Minimum number of points used to calculate each values of the MSD
-MaxStepLength = str2num(get(h.MaxStepLength, 'String')); % Minimum number of points used to calculate each values of the MSD
+MaxBlinks = str2double(get(h.MaxBlinks, 'String')); % Maximum number of frames two successive detections can be separated of
+MinNPoint = str2double(get(h.MinNumberPoints, 'String')); % Minimum number of frames for each trajectory
+MinTrajLength_MSDCalculation = str2double(get(h.MinTrajLength, 'String')); % Minium number of frames for the trajectories used for the calculation of the MSD
+AcquisitionTime = str2double(get(h.AcquisitionTime, 'String')); % in ms
+PixelSize = str2double(get(h.PixelSize, 'String')); %  in um
+MaxDisplayTime = str2double(get(h.MaxDisplayTime, 'String')); % The MSD curve will be displayed only from zero to this value in s
+p = str2double(get(h.NumberPointsMSDFit, 'String')); % Use the first "p" points of the MSD to estimate the Dapp
+MinNPointMSD = str2double(get(h.MinimumNumberPointsMSD, 'String')); % Minimum number of points used to calculate each values of the MSD
+MaxStepLength = str2double(get(h.MaxStepLength, 'String')); % Minimum number of points used to calculate each values of the MSD
 
 FontSize = h.FontSize;
 DiffCalculationMethod = get(h.DiffusionCalculationMethod, 'Value');
@@ -51,7 +71,7 @@ set(hPlot,'OuterPosition',scnsize);%Display fig1 in order to completely fill the
 set(h.NTrajectoriesFiltered, 'String', num2str(NTraj_Filter)); % Display the # of trajectories selected after applying the filters
 h.Reconstructed_Traj_Filtered = Reconstructed_Traj_Filtered;
 
-%% Look whether we want to define an ROI or not. If a ROI is defined, return
+%% Look whether we want to define an ROI. If a ROI is defined, return
 %% only the trajectories detected within the ROI
 %% =============================================
 
@@ -63,110 +83,12 @@ h.Reconstructed_Traj_ROI = Reconstructed_Traj_ROI;
 %% (added as the fifth row)
 %% ========================
 
-hwaitbar = waitbar(0,'Calculating the MSD');
-MSD_all = {};
-MSD_weight = {};
-Idx_TrajAcceptedMSD = [];
-NLongest = 0;
-
-for  ntraj = 1 : NTraj_ROI
-    
-    MSD = [];
-    Weight = [];
-    
-    waitbar(ntraj/NTraj_ROI);
-    Traj = Reconstructed_Traj_ROI{ntraj};
-    LagMax = (Traj(1,end) - Traj(1,1)); % Calculate the maximum lag time for this trajectory
-    
-    % Calculate the MSD. The lagtime goes from "1" to "LagTime-(MinNPointMSD-1)"
-    % since we want, for each value of the MSD, an average over at least 
-    % "MinNPointMSD" different values.
-    % For each lagtime values, the MSD is kept only if there are at least
-    % "MinNPointMSD" distances used for the calculation. Else, the value is
-    % discarted.
-    % --------- 
-    
-    for lag = 1 : LagMax-(MinNPointMSD-1)
-        
-        D_all = [];
-%         D = 0;
-        n = 1;
-        nMSD = 0;
-        MaxLagPoint = Traj(1, end) - lag; % Return the value of time after which there is no point left in the trajectory that could be separated by a lagtime equals to "lag"
-        MaxNPoint = find(Traj(1,:)>MaxLagPoint,1); % Return a list of points that could not be used for the MSD calculation for lagtime = lag;
-        
-        while n < MaxNPoint && MaxNPoint >= MinNPointMSD
-            
-            Idx = find(Traj(1,:)==Traj(1,n)+lag, 1); % Check that two events have been detected with the rigth lag time
-            if ~isempty(Idx)
-                
-                Xi = Traj(2,n);
-                Xj = Traj(2,Idx);
-                Yi = Traj(3,n);
-                Yj = Traj(3,Idx);
-                d = (Xi - Xj)^2 + (Yi - Yj)^2;
-%                 D = D + d;
-                D_all = cat(1, D_all, d);
-                nMSD = nMSD+1;
-            end
-            
-            n = n+1;
-        end
-        
-        % If the number of segments for the calculation of the MSD is lower
-        % than MinNPointMSD, the calculation is stopped
-        % ---------------------------------------------
-        
-        if nMSD > MinNPointMSD
-            MSD(lag) = mean(D_all);
-            Weight(lag) = std(D_all);
-%             Weight(lag) = nMSD;
-        else
-            break
-        end
-    end
-    
-    % Several trajectories (with blinks) can still gives MSD that have less
-    % that p points, which can result in bug/error for the calculation of 
-    % the apparent diffusion coefficient. In order to avoid this issue, a 
-    % last check is performed here and all the MSD array with less than p 
-    % points are discarded.
-    % ---------------------
-    
-    if size(MSD,2)>=p
-        MSD_all = cat(1, MSD_all, MSD);
-        MSD_weight = cat(1, MSD_weight, Weight);
-        Idx_TrajAcceptedMSD = cat(1, Idx_TrajAcceptedMSD, ntraj);
-    end
-    
-%     % For the purpose of specific analysis, the longest tracks are
-%     % searched below
-%     % --------------
-%     
-%     if  length(MSD)>45
-%         
-%         NLongest = NLongest+1;
-%         
-%         figure(5)
-%         ax = gca;
-%         
-%         T = 1 : 1 : length(MSD);
-%         errorbar(T*0.02,MSD,Weight, '-ob')
-%         axis square
-%         
-%         figure(6)
-%         X = Traj(2,:);
-%         Y = Traj(3,:);
-%         plot(X,Y,'-ok','MarkerSize', 10, 'LineWidth', 0.5, 'MarkerFaceColor', 'k')
-%         axis equal
-%         
-%         disp('')
-%     end
-    
+if h.Parallel_computing.Value == 0
+    [MSD_all,MSD_weight,Reconstructed_Traj_MSD] = MSD_calculation(Reconstructed_Traj_ROI,NTraj_ROI,MinNPointMSD,p);
+else
+    [MSD_all,MSD_weight,Reconstructed_Traj_MSD] = MSD_calculation_parallel_computing(Reconstructed_Traj_ROI,NTraj_ROI,MinNPointMSD,p);
 end
 
-close(hwaitbar);
-Reconstructed_Traj_MSD = Reconstructed_Traj_ROI(Idx_TrajAcceptedMSD);
 NTraj_MSD = size(MSD_all,1);
 set(h.NTrajectoriesMSD, 'String', num2str(NTraj_MSD)); % Display the # of trajectories accepted for MSD calculation
 h.Reconstructed_Traj_MSD = Reconstructed_Traj_MSD;
@@ -174,17 +96,17 @@ h.Reconstructed_Traj_MSD = Reconstructed_Traj_MSD;
 %% Return the track density and display it on the GUI
 %% ==================================================
 
-if isfield(h, 'AvIm') && exist('Area', 'var')~=0
+if isfield(h, 'AvIm') && exist('Area','var')~=0
     Density = round(1000*NTraj_ROI/(sum(Area)*PixelSize^2))/1000;
-    set(h.TrackDensity, 'String', num2str(Density)); % Display the density of tracks per µm²
+    set(h.TrackDensity, 'String', num2str(Density)); % Display the density of tracks per ï¿½mï¿½
     h.Density = Density;
 elseif isfield(h, 'AvIm') && exist('Area', 'var')==0
     Density = round(1000*NTraj_ROI/(size(h.AvIm,1)*size(h.AvIm,2)*PixelSize^2))/1000;
-    set(h.TrackDensity, 'String', num2str(Density)); % Display the density of tracks per µm²
+    set(h.TrackDensity, 'String', num2str(Density)); % Display the density of tracks per ï¿½mï¿½
     h.Density = Density;
 else
     Density = NaN;
-    set(h.TrackDensity, 'String', ''); % Display the density of tracks per µm²
+    set(h.TrackDensity, 'String', ''); % Display the density of tracks per ï¿½mï¿½
 end
 
 %% The apparent diffusion coefficient is calculated for each single trajectory
@@ -196,95 +118,30 @@ end
 % for a lagtime of 1 frame
 % -------------------------
 
-Idx_MSD_accepted = [];
-hwaitbar = waitbar(0, 'Calculating the apparent diffusion coefficient ...');
-
-Lag = 1 : 1 : p;
-Lag = Lag*AcquisitionTime/1000;
-Dapp = [];
-
-for nMSD = 1 : size(MSD_all,1)
-    
-    waitbar(nMSD /size(MSD_all,1));
-    MSD = MSD_all{nMSD}(1:p);
-    Weight = MSD_weight{nMSD}(1:p);
-    Nnan = sum(isnan(MSD));
-    Nzeros = sum(MSD(:)>0);
-    
-    if DiffCalculationMethod == 2 && size(MSD,2)>=p
-        
-        % Calculation of Dapp using the fit
-        % ---------------------------------
-              
-        if Nzeros == p && Nnan == 0
-            
-            %                 figure(1)
-            %                 cla
-            %                 hold on
-            %                 plot(Lag', MSD_all(nMSD, 1 : Minp+(p-1))', 'o')
-            %                 plot(0, 0, 'o')
-            
-            [fitobject,gof] = fit(Lag', MSD', 'Poly1', 'Weights', Weight', 'Upper', [Inf, min(MSD)]);
-            if fitobject.p1>0
-                Dapp(end+1,1) = fitobject.p1/4; % Return the coefficient of diffusion
-                %                     Dapp(end,2) = fitobject.p2; % Return the dynamic localization uncertainty (4 s^2)
-                %                     D(end+1,1) = fitobject.p1; % Return the coefficient of diffusion
-                %                     D(end,2) = sqrt(fitobject.p2); % Return the dynamic localization uncertainty (4 s^2)
-                %                         fitobject = ezfit(Lag', MSD_all(nMSD, 1 : Minp+(p-1) )', 'poly1'); % Replaced the function fit by ezfit to avoid licence problem
-                %                         if fitobject.m(2)>0
-                %                             D(end+1,1) = fitobject.m(2)/4; % Return the coefficient of diffusion
-                %                             D(end,2) = sqrt(fitobject.m(1)/4); % Return the dynamic localization uncertainty (4 s^2)
-                Idx_MSD_accepted(end+1,1) = nMSD; % Save the index of the MSD values that are used for the calculation of the apparent diffusion coefficient
-            end
-        end
-        
-    else
-        
-        % Calculation of Dapp using the average
-        % -------------------------------------
-
-        if Nzeros == p && Nnan == 0
-                Dapp(end+1,1) = sum(MSD.*Weight./(4*Lag))/sum(Weight);
-                Idx_MSD_accepted(end+1,1) = nMSD;
-        end
-        
-    end
+if h.Parallel_computing.Value == 0
+    [MSD_all,Reconstructed_Traj_MSD_accepted,Dapp] = Diff_calculation(DiffCalculationMethod,MSD_all,MSD_weight,p,AcquisitionTime,Reconstructed_Traj_MSD);
+else
+    [MSD_all,Reconstructed_Traj_MSD_accepted,Dapp] = Diff_calculation_parallel_computing(DiffCalculationMethod,MSD_all,MSD_weight,p,AcquisitionTime,Reconstructed_Traj_MSD);
 end
-
-MSD_all = MSD_all(Idx_MSD_accepted); % Keep only the points in MSD_all that were used to calculate the distribution of apparent diffusion coefficient
-Reconstructed_Traj_MSD_accepted = Reconstructed_Traj_MSD(Idx_MSD_accepted); % Keep only the trajectories that associated to the accepted MSD 
 
 NTraj_Diff = size(Dapp,1);
 set(h.NTrajectoriesDiff, 'String', num2str(NTraj_Diff)); % Display the # of trajectories selected for D calculation
 h.Dapp = Dapp;
-close(hwaitbar)
 
 %% Plot the distribution of apparent diffusion coefficient
 %% =======================================================
 
 figure(hPlot)
-ax = gca;
 hold off
 cla
 
 LogDapp = log10(Dapp);
-Bin = min(LogDapp(:,1)) : (max(LogDapp(:,1))-min(LogDapp(:,1)))/50 : max(LogDapp(:,1));
-[N,Bin] = hist(LogDapp(:,1), Bin);
-N = 100*N/sum(N);
-
-bar(Bin, N, 'FaceColor', [0 0.4 1])
-ax.FontSize = FontSize;
-axis square
-box on
-xlabel('Log of apparent diffusion coefficient (µm²/s)')
-ylabel('Fraction of molecule (%)')
+[NbrGaussianFit, D_mean, varargout] = FitGaussianDistribution_v2(LogDapp, MSD_all, FontSize, hPlot, round(MaxDisplayTime*1000/AcquisitionTime), Reconstructed_Traj_MSD_accepted, DiffCalculationMethod);
+MSD_FIT = varargout{1};
 
 T = cat(2, LogDapp(:,1), Dapp(:,1));
 T = array2table(T, 'VariableNames', {'logD', 'D'});
 writetable(T, 'Saved_Diffusion_Coeff.txt');
-
-[NbrLorentzianFit, D_mean, varargout] = FitLorentzianDistribution_v2(N, Bin, LogDapp, MSD_all, FontSize, hPlot, round(MaxDisplayTime*1000/AcquisitionTime), Reconstructed_Traj_MSD_accepted, DiffCalculationMethod);
-MSD_FIT = varargout{1};
 
 %% Plot the MSD curve
 %% ==================
@@ -296,29 +153,24 @@ ax = gca;
 hold off
 cla
 
-if NbrLorentzianFit == 2
+if NbrGaussianFit == 2
     
     MSD_1 = MSD_FIT(:,1:3);
     MSD_2 = MSD_FIT(:,4:6);
     
-    errorbar(Lag*AcquisitionTime/1000, MSD_1(:,1), MSD_1(:,2), '-o', 'Color', [1 0.5 0])
     hold on
+    errorbar(Lag*AcquisitionTime/1000, MSD_1(:,1), MSD_1(:,2), '-o', 'Color', [1 0.5 0])
     errorbar(Lag*AcquisitionTime/1000, MSD_2(:,1), MSD_2(:,2), '-o', 'Color', [0 0.4 1])
-%     [fitobject1,gof1] = fit(Lag(Idx(1:4))'*AcquisitionTime/1000, MSD_1(Idx(1:4),1), 'poly1');
-%     [fitobject2,gof2] = fit(Lag(Idx(1:4))'*AcquisitionTime/1000, MSD_2(Idx(1:4),1), 'poly1');
-    
     errorbar(Lag*AcquisitionTime/1000, MSD_1(:,3), MSD_1(:,2), '-s', 'Color', [1 0.5 0], 'LineWidth', 2)
     errorbar(Lag*AcquisitionTime/1000, MSD_2(:,3), MSD_2(:,2), '-s', 'Color', [0 0.4 1], 'LineWidth', 2)
-%     [fitobject1,gof1] = fit(Lag(Idx(1:4))'*AcquisitionTime/1000, MSD_1(Idx(1:4),1), 'poly1');
-%     [fitobject2,gof2] = fit(Lag(Idx(1:4))'*AcquisitionTime/1000, MSD_2(Idx(1:4),1), 'poly1');
     
     axis square
     ax.FontSize = FontSize;
     box on
     xlabel('Time(s)')
-    ylabel('MSD (µm²)')
+    ylabel('MSD (umÂ²)')
     
-    Title = sprintf('log(D_1) = %.2f µm²/s -- log(D_2) = %.2f µm²/s', D_mean(1,1), D_mean(1,2));
+    Title = sprintf('log(D_1) = %.2f umÂ²/s -- log(D_2) = %.2f umÂ²/s', D_mean(1,1), D_mean(1,2));
     title(Title);
     legend('D1 average', 'D2 average', 'D1 median', 'D2 median', 'Location', 'northwest');
     
@@ -345,7 +197,7 @@ else
     box on
     ax.FontSize = FontSize;
     xlabel('Time(s)')
-    ylabel('MSD (µm²/s)')
+    ylabel('MSD (umÂ²/s)')
     legend('Mean values', 'Median values', 'Location', 'northwest')
     
     t = Lag*AcquisitionTime/1000;
@@ -355,8 +207,7 @@ else
     
 end
 
-export_fig(hPlot, 'MSD_Curves.png');
-% export_fig(hPlot, 'MSD_Curves.pdf', '-pdf');
+saveas(hPlot, 'MSD_Curves.png');
 
 %% The trajectories are plotted on a single graph
 %% ==============================================
@@ -408,8 +259,7 @@ else
     rectangle('Position', ScaleBar, 'EdgeColor', [1 1 1], 'FaceColor', [1 1 1], 'LineWidth', 2)
 end
 
-export_fig(hPlot, 'Trajectories.png');
-% export_fig(hPlot, 'Trajectories.pdf', '-pdf');
+saveas(hPlot, 'Trajectories.png');
 
 %% Save the parameters in the file called MTT_sptPALM_analysis.mat
 %% ===============================================================
@@ -436,7 +286,7 @@ Results.Dapp = Dapp;
 Results.Reconstructed_Traj_MSD_accepted = Reconstructed_Traj_MSD_accepted;
 h.Reconstructed_Traj_MSD_accepted = Reconstructed_Traj_MSD_accepted;
 
-if NbrLorentzianFit==1
+if NbrGaussianFit==1
     h.Reconstructed_Traj_Diff = varargout{2};
     h.FittedDiffDistribution = varargout{3};
     h.DiffDistribution = varargout{4};
@@ -458,9 +308,9 @@ end
 
 h.D_mean = D_mean;
 h.MSD_FIT = MSD_FIT;
-h.NbrLorentzianFit = NbrLorentzianFit;
+h.NbrGaussianFit = NbrGaussianFit;
 
-Results.NbrLorentzianFit = NbrLorentzianFit;
+Results.NbrGaussianFit = NbrGaussianFit;
 Results.D_mean = D_mean;
 Results.MSD_FIT = MSD_FIT;
 Results.Density = Density;
@@ -468,7 +318,12 @@ Results.Density = Density;
 %% The figure are saved and the parameters as well in a txt file
 %% ==============================================================
 
-fileID = fopen(strcat(h.DirectoryName, '\', 'Parameters_analysis.txt'),'w');
+if isunix
+    fileID = fopen(strcat(h.DirectoryName, '/', 'Parameters_analysis.txt'),'w');
+else
+    fileID = fopen(strcat(h.DirectoryName, '\', 'Parameters_analysis.txt'),'w');
+end
+
 fprintf(fileID, 'The following parameters are only the one used for the MATLAB analysis');
 fprintf(fileID, '\r\n');
 fprintf(fileID, '\r\n');
@@ -493,7 +348,7 @@ fprintf(fileID, '\r\n %s', 'Number of movies analyzed ');
 fprintf(fileID, '\n\n\n %s\n', get(h.NMovies, 'String'));
 fprintf(fileID, '\r\n %s', 'Acquisition time (ms)');
 fprintf(fileID, '\n\n\n %4.2f\n', AcquisitionTime);
-fprintf(fileID, '\r\n %s', 'Pixel size (µm)');
+fprintf(fileID, '\r\n %s', 'Pixel size (um)');
 fprintf(fileID, '\n\n\n %4.2f\n', PixelSize);
 
 fprintf(fileID, '\r\n');
@@ -507,7 +362,7 @@ fprintf(fileID, '\r\n %s', 'Number of trajectories validated for MSD calculation
 fprintf(fileID, '\n\n\n %4.2f\n', NTraj_MSD);
 fprintf(fileID, '\r\n %s', 'Number of trajectories validated for the Dapp calculation');
 fprintf(fileID, '\n\n\n %4.2f\n', NTraj_Diff);
-fprintf(fileID, '\r\n %s', 'Density of tracks detected (/µm²)');
+fprintf(fileID, '\r\n %s', 'Density of tracks detected (/umÂ²)');
 fprintf(fileID, '\n\n\n %4.2f\n', Density);
 
 fclose(fileID);

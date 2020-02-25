@@ -9,17 +9,17 @@ Reconstructed_Traj_Filtered = {};
 %%  1- the distance between the two first detections is above the threshold.
 %%     In that case, the first point is automatically removed.
 %%  2- same case for the last point
-%%  3- if the misconnection is detected somewhere in between the first and 
+%%  3- if the misconnection is detected somewhere in between the first and
 %%     last points, there is again two possibilities:
 %%       a- the misconnection is only due to a single misdetection and the
-%%          following points still belong to the same track. In that case, 
+%%          following points still belong to the same track. In that case,
 %%          if the wrong detection is detected at frame 'n', the distances
 %%          between 'n' and the points 'n+1' and 'n-1' should be larger than
-%%          the mean distance separating two consecutive points of the 
+%%          the mean distance separating two consecutive points of the
 %%          trajectory. Therefore the distance between 'n-1' and 'n+1' should
-%%          be smaller than the threshold. In that case the point 'n' is simply 
+%%          be smaller than the threshold. In that case the point 'n' is simply
 %%          removed from the trajectory.
-%%       b- the misconnection is between two different tracks. In that case, 
+%%       b- the misconnection is between two different tracks. In that case,
 %%          the distance between 'n' and 'n-1' and 'n-1' and 'n+1' should both
 %%          be above the threshold. In that case, the initial track is split
 %%          into two tracks.
@@ -27,9 +27,10 @@ Reconstructed_Traj_Filtered = {};
 
 NTraj = size(Reconstructed_Traj,1);
 nTraj = 1;
-wtb = waitbar(0, 'removing misconnexions ...');
 
-if ~isempty(MaxStepLength)
+if ~isnan(MaxStepLength)
+    
+    wtb = waitbar(0, 'removing misconnexions ...');
     
     while nTraj <= NTraj
         
@@ -92,11 +93,12 @@ if ~isempty(MaxStepLength)
         NTraj = size(Reconstructed_Traj,1);
         nTraj = nTraj + 1;
     end
+    
+    close(wtb)
+    
 end
 
-close(wtb)
-
-%% Start the analysis of all the trajectories to calculate the MSD and diffusion 
+%% Start the analysis of all the trajectories to calculate the MSD and diffusion
 %% distribution
 %% ------------
 

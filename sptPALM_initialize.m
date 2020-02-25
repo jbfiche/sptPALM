@@ -113,18 +113,21 @@ switch Action
          
     case 'LoadPreviousData'
         
-        NFiles = dir('*MTT_sptPALM_analysis*.mat');
-        if size(NFiles,1) == 1
-            Results = load(NFiles(1).name);
-            h.ResultsFileName = NFiles(1).name;
-        elseif size(NFiles,1) > 1
-            hwarn = warndlg('More than one file were found. Manually select the file you want to use:');
-            uiwait(hwarn);
-            [FileName,~,~] = uigetfile('*MTT_sptPALM_analysis*.mat');
-            Results = load(FileName);
-            h.ResultsFileName = FileName;
-        end
-%         Results = load('MTT_sptPALM_analysis.mat');
+        NFiles = dir(h.ResultsFileName);
+        Results = load(NFiles(1).name);
+        h.ResultsFileName = NFiles(1).name;
+
+%         if size(NFiles,1) == 1
+%             Results = load(NFiles(1).name);
+%             h.ResultsFileName = NFiles(1).name;
+%         elseif size(NFiles,1) > 1
+%             hwarn = warndlg('More than one file were found. Manually select the file you want to use:');
+%             uiwait(hwarn);
+%             [FileName,~,~] = uigetfile('*MTT_sptPALM_analysis*.mat');
+%             Results = load(FileName);
+%             h.ResultsFileName = FileName;
+%         end
+
         h.DirectoryName = cd;
         
         if isfield(Results, 'AcquisitionTime') && isfield(Results, 'PixelSize')

@@ -1,4 +1,26 @@
-function sptPALM_CBS_v2(varargin)
+%*****************************
+%
+% sptPALM_viewer.m
+%
+% ****************************
+%
+% JB Fiche
+% Feb, 2020
+% fiche@cbs.cnrs.fr
+% -------------------------------------------------------------------------
+% Purpose: Analyze tracking data obtained from MTT software (Serge et al.
+% 2008, Nat. Methods). The program can be used to sort the track, calculate
+% the MSD and diffusion coefficients Dinst, plot the trajectories and the
+% distribution of Dinst. Data can also be simulated. 
+% -------------------------------------------------------------------------
+% Specific: 
+% -------------------------------------------------------------------------
+% To fix: 
+% -------------------------------------------------------------------------
+% Copyright Centre National de la Recherche Scientifique, 2020.
+
+function sptPALM_viewer(varargin)
+
 
 %% Initialize the GUI
 %% ==================
@@ -14,42 +36,42 @@ MaxEditBox = 1;
 % the displayed windows.
 % ----------------------
 
-Side_Border = 25;
-Height_Border = 10;
-ControlPannel_Width = 500;
-ControlPannel_Height = 850;
+Side_Border = 15;
+Height_Border = 5;
+ControlPanel_Width = 600;
+ControlPanel_Height = 865;
 DisplayMovie_Width = 700;
 DisplayMovie_Height = 700;
 Axis_Size = 650;
 
-h.sptPALM_DisplayMovie = figure('Visible','off',...
+h.sptPALM_DisplayMovie = figure('Visible','on',...
     'Units','pixels',...
     'Position',[round(scrsz(3)/2)-350,round(scrsz(4)/2)-350,DisplayMovie_Width,DisplayMovie_Height],...
     'MenuBar','none',...
-    'Name','sptPALM_cbs_Control_Pannel',...
+    'Name','sptPALM_cbs_Control_Panel',...
     'NumberTitle','off',...
     'Toolbar','none',...
     'Resize','off',...
     'Color',defaultBackground,...
     'DefaultUicontrolUnits','Pixels',...
     'DefaultUipanelUnits','Pixels',...
-    'CloseRequestFcn',@newclosefunction);
+    'CloseRequestFcn',@sptPALM_DisplayMovie_closefunction);
 
-h.sptPALM_ControlPannel = figure('Visible','on',...
+h.sptPALM_ControlPanel = figure('Visible','on',...
     'Units','pixels',...
-    'Position',[round(scrsz(3)/2)-250,round(scrsz(4)/2)-425,ControlPannel_Width,ControlPannel_Height],...
+    'Position',[round(scrsz(3)/2)-250,round(scrsz(4)/2)-425,ControlPanel_Width,ControlPanel_Height],...
     'MenuBar','none',...
     'Name','sptPALM_cbs_Display_Window',...
     'NumberTitle','off',...
     'Toolbar','none',...
     'Resize','off',...
     'Color',defaultBackground,...
-    'CloseRequestFcn',@sptPALM_cbs_closefunction);
+    'CloseRequestFcn',@sptPALM_viewer_closefunction);
 
 % Construct the components
 % ------------------------
 
-h = sptPALM_components(h, Side_Border, Height_Border, ControlPannel_Width, ControlPannel_Height);
+h = sptPALM_components(h, Side_Border, Height_Border, ControlPanel_Width, ControlPanel_Height);
 
 % Reinitialize the values of all the callbacks and define several
 % parameters that will be used for the display or saving the results
@@ -79,13 +101,13 @@ SimulationParameters.MaxBlink = 3; % in frames
 SimulationParameters.MinTrajLength = 5; %in frames
 
 SimulationParameters.ImageSize = 252; % px
-SimulationParameters.PixelSize = 0.102; % in µm
+SimulationParameters.PixelSize = 0.102; % in ï¿½m
 SimulationParameters.AcquisitionTime = 0.02; % in s
 SimulationParameters.Offset = 90; % intensity offset for the image
 SimulationParameters.Noise1 = 60; % parameter lambda for the Poisson distribution describing the noise of the EMCCD camera
 SimulationParameters.Noise2 = 0.25; % parameter describing the normal noise for each pixel and linked to the photon detection
 SimulationParameters.GaussStampSize = 5; % parameters defining the half-size of the window where the 2D gaussian will be calculated
-SimulationParameters.LimitResolution = 0.15; % in µm
+SimulationParameters.LimitResolution = 0.15; % in ï¿½m
 SimulationParameters.MeanSingleEventIntensity = 80; % Mean intensity of single emitters
 
 h.SimulationParameters = SimulationParameters;
@@ -119,24 +141,12 @@ set(h.LaunchSimulation,'callback', @LaunchSimulation);
         clc
         h = sptPALM_initialize(h, 'Reset_all');
         h = sptPALM_initialize(h, 'Reset_h');
-        h.ResultsFileName = 'MTT_sptPALM_analysis.mat';
+        h.ResultsFileName = h.Saving_file_name.String;
         
         [h, Repeat_Analysis] = Load_MTT_Tracking_Files_v2(h);
         
-        if isequal(Repeat_Analysis, 'No')
+        if isequal(Repeat_Analysis, 'Erase')
             h = ReconstructTraj_v5(h);
-        end
-        
-        AddTag = questdlg(strcat('Do you want to add a tag to the file "', h.ResultsFileName, '"'), 'Add tag', 'Yes', 'No', 'No');
-        switch AddTag
-            case 'Yes'
-                Prompt = 'Enter the tag you want (single string of characters, no space) :';
-                Dlg_title = 'Tage name';
-                char_line = 1;
-                Default_Tag = {'Tag'};
-                Tag = inputdlg(Prompt, Dlg_title, char_line, Default_Tag);
-                
-                h.ResultsFileName = strcat(h.ResultsFileName(1:end-4), '_', Tag{1}, '.mat');
         end
     end
 
@@ -439,11 +449,11 @@ set(h.LaunchSimulation,'callback', @LaunchSimulation);
         clc
         
         prompt = {'Enter the size of the image in pixels (image is square by default)', 'Enter the aquisition time (s)',...
-            'Enter the pixel size(µm)', 'Enter the intensity offset', ...
+            'Enter the pixel size(ï¿½m)', 'Enter the intensity offset', ...
             'Enter the parameter LAMBDA describing the dark noise of the EMCCD camera (Poisson distribution)',...
             'Enter the parameter SIGMA describing the amplification noise of the EMCCD camera (Normal distribution)',...
             'Enter the half size of the window where the intensity of a single emitter is plot (in px)', ...
-            'Enter the diffraction limit (in µm and defined as the standard deviation)',...
+            'Enter the diffraction limit (in ï¿½m and defined as the standard deviation)',...
             'Enter the mean intensity associated to a single emitters (intensity distribution described by a Poisson distribution)'};
         dlg_title = 'Define aquisition parameters';
         num_lines= 1;
@@ -457,12 +467,12 @@ set(h.LaunchSimulation,'callback', @LaunchSimulation);
         if ~isempty(NewAquisitionParameters)
             h.SimulationParameters.ImageSize = str2double(NewAquisitionParameters{1}); % px
             h.SimulationParameters.AcquisitionTime = str2double(NewAquisitionParameters{2}); % s
-            h.SimulationParameters.PixelSize = str2double(NewAquisitionParameters{3}); % µm
+            h.SimulationParameters.PixelSize = str2double(NewAquisitionParameters{3}); % ï¿½m
             h.SimulationParameters.Offset = str2double(NewAquisitionParameters{4}); % intensity offset for the image
             h.SimulationParameters.Noise1 = str2double(NewAquisitionParameters{5}); % parameter lambda for the Poisson distribution describing the noise of the EMCCD camera
             h.SimulationParameters.Noise2 = str2double(NewAquisitionParameters{6}); % parameter describing the normal noise for each pixel and linked to the photon detection
             h.SimulationParameters.GaussStampSize = str2double(NewAquisitionParameters{7}); % parameters defining the half-size of the window where the 2D gaussian will be calculated
-            h.SimulationParameters.LimitResolution = str2double(NewAquisitionParameters{8}); % in µm
+            h.SimulationParameters.LimitResolution = str2double(NewAquisitionParameters{8}); % in ï¿½m
             h.SimulationParameters.MeanSingleEventIntensity = str2double(NewAquisitionParameters{9}); % Mean intensity of single emitters
         end
     end
@@ -478,15 +488,15 @@ set(h.LaunchSimulation,'callback', @LaunchSimulation);
 %% Function controlling the closing of the display window
 %% =======================================================
 
-    function newclosefunction(~,~)
+    function sptPALM_DisplayMovie_closefunction(~,~)
         set(h.sptPALM_DisplayMovie, 'Visible', 'off');
     end
 
 %% Function controlling the closing of the main window
 %% ===================================================
 
-    function sptPALM_cbs_closefunction(~,~)
+    function sptPALM_viewer_closefunction(~,~)
         delete(h.sptPALM_DisplayMovie)
-        delete(h.sptPALM_ControlPannel)
+        delete(h.sptPALM_ControlPanel)
     end
 end

@@ -1,16 +1,34 @@
-function FinalDirectories = LookForDirectories_spt(DirectoryName)
+%*****************************
+%
+% LookForDirectories_spt.m
+
+% ****************************
+%
+% JB Fiche
+% Feb, 2020
+% fiche@cbs.cnrs.fr
+% -------------------------------------------------------------------------
+% Purpose: Look for the .mat files. Return a list of file names that will
+% be used for the analysis. 
+% -------------------------------------------------------------------------
+% Specific: 
+% -------------------------------------------------------------------------
+% To fix: 
+% -------------------------------------------------------------------------
+% Copyright Centre National de la Recherche Scientifique, 2020.
+
+
+function FinalDirectories = LookForDirectories_spt(DirectoryName, FileName)
 
 dim = 0;
 AllDirectories = {};
 FinalDirectories = {};
 dirinfo = dir();
 
-% Look for the folders corresponding to an ROI or the TL_Channel or
-% containing a Kymo results file
-% ------------------------------
+% Look for the mat files with a name similar to the one indicated by "FileName"
+% ----------------------------------------------------------------------------
 
-
-dirinfo_ROI = dir('*tif.mat');
+dirinfo_ROI = dir(FileName);
 
 if ~isempty(dirinfo_ROI)
     if isunix
@@ -20,8 +38,11 @@ if ~isempty(dirinfo_ROI)
     end
 end
 
-% Look at the folders inside the selected directory
-% -------------------------------------------------
+% Look at the folders and subfolders inside the selected directory. This
+% step will return a list of all the directories within the initial
+% directly indicated by "DirectoryName". All the directories names are
+% saved in the cell "AllDirectories".
+% -----------------------------------
 
 dirinfo(~[dirinfo.isdir]) = [];  %remove non-directories
 NFolder = 0;
@@ -94,6 +115,10 @@ while NFolder > 0
     end
 end
 
+% Concatenate all the names from the 2D cell "AllDirectories" into a single
+% 1D cell "Directories".
+% ----------------------
+
 Directories = {};
 
 for n = 1 : size(AllDirectories,1)
@@ -103,10 +128,14 @@ for n = 1 : size(AllDirectories,1)
     end
 end
 
+% For each directory, look again for .mat files with the right name format,
+% as indicated by "FileName_format".
+% ----------------------------------
+
 for n = 1 : size(Directories,1)
     cd(Directories{n})
     
-    dirinfo_ROI = dir('*tif.mat');
+    dirinfo_ROI = dir(FileName);
     
     if ~isempty(dirinfo_ROI)
         if isunix
