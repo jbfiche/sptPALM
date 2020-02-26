@@ -1,16 +1,14 @@
 function [MSD_all,MSD_weight,Reconstructed_Traj_ROI] = MSD_calculation(Reconstructed_Traj_ROI,NTraj_ROI,MinNPointMSD,p);
 
-hwaitbar = waitbar(0,'Calculating the MSD');
 MSD_all = cell(NTraj_ROI,1);
 MSD_weight = cell(NTraj_ROI,1);
 Idx_TrajAcceptedMSD = zeros(NTraj_ROI,1);
+disp('Calculating the MSD for each trajectories ...')
 
 for ntraj = 1 : NTraj_ROI
     
     MSD = [];
     Weight = [];
-    
-    waitbar(ntraj/NTraj_ROI);
     Traj = Reconstructed_Traj_ROI{ntraj};
     LagMax = (Traj(1,end) - Traj(1,1)); % Calculate the maximum lag time for this trajectory
     
@@ -75,5 +73,4 @@ end
 MSD_all = MSD_all(Idx_TrajAcceptedMSD==1);
 MSD_weight = MSD_weight(Idx_TrajAcceptedMSD==1);
 Reconstructed_Traj_ROI = Reconstructed_Traj_ROI(Idx_TrajAcceptedMSD==1);
-
-close(hwaitbar);
+disp('MSD calculation done.')

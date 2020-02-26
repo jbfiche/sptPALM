@@ -1,4 +1,4 @@
-function h = Save_For_Tesseler_sptPALM(h)
+function h = Save_For_Tesseler_sptPALM_parallel_computing(h)
 
 %% Create the txt files for SR-Tesseler clustering algorithm. The first file
 %% is indicating the mean position of each trajectory (columns 1&2) as well
@@ -21,7 +21,7 @@ Tesseler_Instant_Velocity = cell(NTraj_Diff,1);
 Trajectories = h.Reconstructed_Traj_MSD_accepted;
 D = h.Dapp;
 
-for ntraj = 1 : NTraj_Diff
+parfor ntraj = 1 : NTraj_Diff
     
     SingleTraj = Trajectories{ntraj};
     Tesseler_diffusion(ntraj,:) = [median(SingleTraj(2,:)), median(SingleTraj(3,:)), D(ntraj), SingleTraj(1,1)];

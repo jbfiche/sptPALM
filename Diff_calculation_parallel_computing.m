@@ -1,5 +1,6 @@
 function [MSD_all,Reconstructed_Traj_MSD_accepted,Dapp] = Diff_calculation_parallel_computing(DiffCalculationMethod,MSD_all,MSD_weight,p,AcquisitionTime,Reconstructed_Traj_MSD)
 
+disp(' ')
 disp('Calculating the apparent diffusion coefficient ...')
 
 Lag = 1 : 1 : p;
@@ -58,3 +59,4 @@ end
 MSD_all = MSD_all(Idx_MSD_accepted==1); % Keep only the points in MSD_all that were used to calculate the distribution of apparent diffusion coefficient
 Reconstructed_Traj_MSD_accepted = Reconstructed_Traj_MSD(Idx_MSD_accepted==1); % Keep only the trajectories that associated to the accepted MSD
 disp('Diff calculation done')
+disp(' ')

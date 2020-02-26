@@ -40,15 +40,15 @@ Side_Border = 15;
 Height_Border = 5;
 ControlPanel_Width = 600;
 ControlPanel_Height = 865;
-DisplayMovie_Width = 700;
-DisplayMovie_Height = 700;
-Axis_Size = 650;
+DisplayMovie_Width = 720;
+DisplayMovie_Height = 750;
+Axis_Size = 600;
 
 h.sptPALM_DisplayMovie = figure('Visible','on',...
     'Units','pixels',...
     'Position',[round(scrsz(3)/2)-350,round(scrsz(4)/2)-350,DisplayMovie_Width,DisplayMovie_Height],...
     'MenuBar','none',...
-    'Name','sptPALM_cbs_Control_Panel',...
+    'Name','sptPALM_Display_Panel',...
     'NumberTitle','off',...
     'Toolbar','none',...
     'Resize','off',...
@@ -61,7 +61,7 @@ h.sptPALM_ControlPanel = figure('Visible','on',...
     'Units','pixels',...
     'Position',[round(scrsz(3)/2)-250,round(scrsz(4)/2)-425,ControlPanel_Width,ControlPanel_Height],...
     'MenuBar','none',...
-    'Name','sptPALM_cbs_Display_Window',...
+    'Name','sptPALM_Control_Panel',...
     'NumberTitle','off',...
     'Toolbar','none',...
     'Resize','off',...
@@ -78,14 +78,19 @@ h = sptPALM_components(h, Side_Border, Height_Border, ControlPanel_Width, Contro
 % ------------------------------------------------------------------
 
 h = sptPALM_initialize(h, 'Reset_all');
-h.FontSize = 15;
+h.FontSize = 10;
 h.ResultsFileName = 'MTT_sptPALM_analysis.mat';
 
 % Define the axis on the display figure
 % -------------------------------------
 
+Corner_x = (DisplayMovie_Width - Axis_Size)/(2*DisplayMovie_Width);
+Corner_y = (DisplayMovie_Height - Axis_Size)/(2*DisplayMovie_Height);
+Lx = Axis_Size/DisplayMovie_Width;
+Ly = Axis_Size/DisplayMovie_Height;
+
 h.MainAxes = axes('Parent', h.sptPALM_DisplayMovie, 'box', 'on', 'XTick', [], 'YTick', [], ...
-    'Position', [Side_Border/DisplayMovie_Width, (DisplayMovie_Height-Side_Border-Axis_Size)/DisplayMovie_Height, Axis_Size/DisplayMovie_Width, Axis_Size/DisplayMovie_Height]);
+    'Position', [Corner_x,Corner_y,Lx,Ly]);
 
 % Define the default parameters for the simulation
 % ------------------------------------------------
@@ -116,6 +121,7 @@ h.SimulationParameters = SimulationParameters;
 % -----------------
 
 set(h.LoadMTT, 'callback', @LoadMTT);
+set(h.Load_Previous_analysis, 'callback', @Load_Previous_analysis);
 set(h.MinTrajLength, 'callback', @CheckMinTrajSize);
 set(h.AnalyseTrajectories, 'callback', @AnalyseTrajectories);
 set(h.SaveForTesseler, 'callback', @SaveForTesseler);
@@ -145,8 +151,38 @@ set(h.LaunchSimulation,'callback', @LaunchSimulation);
         
         [h, Repeat_Analysis] = Load_MTT_Tracking_Files_v2(h);
         
-        if isequal(Repeat_Analysis, 'Erase')
-            h = ReconstructTraj_v5(h);
+        if isequal(Repeat_Analysis, 'Start new analysis')
+            h = ReconstructTraj_v6(h);
+        end
+    end
+
+%% Load previous analysis
+%% ======================
+
+    function Load_Previous_analysis(~,~)
+        clc
+        clear_display_axis
+        h = sptPALM_initialize(h, 'Reset_all');
+        h = sptPALM_initialize(h, 'Reset_h');
+        [FileName, PathName] = uigetfile('*.mat');
+        
+        if FileName ~= 0
+            
+            cd(PathName);
+            h.ResultsFileName = FileName;
+            set(h.Saving_file_name, 'String', FileName);
+            
+            set(h.PlotPreviousAnalysis, 'Enable', 'on')
+            h = sptPALM_initialize(h, 'LoadPreviousData');
+            
+            set(h.AnalyseTrajectories, 'Enable', 'on')
+            set(h.DiffusionCalculationMethod, 'Enable', 'on')
+            
+            if isfield(h, 'FittedDiffDistribution') && isfield(h, 'DiffDistribution') && isfield(h, 'D_mean') && isfield(h, 'MSD_FIT')
+                set(h.SaveForTesseler, 'Enable', 'on')
+                set(h.PlotPreviousAnalysis, 'Enable', 'on')
+                set(h.DataTypePlot, 'Enable', 'on')
+            end
         end
     end
 
@@ -171,6 +207,7 @@ set(h.LaunchSimulation,'callback', @LaunchSimulation);
 
     function AnalyseTrajectories(~,~)
         clc
+        clear_display_axis
         h = MTT_Trajectory_analysis_v4(h);
     end
 
@@ -179,7 +216,11 @@ set(h.LaunchSimulation,'callback', @LaunchSimulation);
 
     function SaveForTesseler(~,~)
         clc
-        h = Save_For_Tesseler_sptPALM(h);
+        if h.Parallel_computing.Value == 0
+            h = Save_For_Tesseler_sptPALM(h);
+        else
+            h = Save_For_Tesseler_sptPALM_parallel_computing(h);
+        end
     end
 
 %% Plot the previous analysis
@@ -187,6 +228,7 @@ set(h.LaunchSimulation,'callback', @LaunchSimulation);
 
     function PlotPreviousAnalysis(~,~)
         clc
+        clear_display_axis
         sptPALM_CBS_PlotPreviousAnalysis_v1(h)
     end
 
@@ -237,7 +279,6 @@ set(h.LaunchSimulation,'callback', @LaunchSimulation);
         
         [MTTFileName, MTTFileDirectory] = uigetfile('*.mat');
         FileToAnalyse = strcat(MTTFileDirectory, MTTFileName);
-        
         h = ReconstructTraj_Display_v5(FileToAnalyse, h);
         PlotTrajectories_sptPALM_v1(h)
     end
@@ -498,5 +539,15 @@ set(h.LaunchSimulation,'callback', @LaunchSimulation);
     function sptPALM_viewer_closefunction(~,~)
         delete(h.sptPALM_DisplayMovie)
         delete(h.sptPALM_ControlPanel)
+    end
+
+%% Function for clearing the display axis
+%% ======================================
+
+    function clear_display_axis(~,~)
+        figure(h.sptPALM_DisplayMovie)
+        clf
+        h.MainAxes = axes('Parent', h.sptPALM_DisplayMovie, 'box', 'on', 'XTick', [], 'YTick', [], ...
+    'Position', [Corner_x,Corner_y,Lx,Ly]);
     end
 end

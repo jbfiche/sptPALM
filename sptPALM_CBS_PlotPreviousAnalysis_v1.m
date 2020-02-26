@@ -3,12 +3,6 @@ function sptPALM_CBS_PlotPreviousAnalysis_v1(h)
 PlotType = get(h.DataTypePlot, 'Value');
 NbrGaussianFit = h.NbrGaussianFit;
 
-hPlot = figure;
-set(0,'Units','pixels'); %Define the type of units used later for the position (here in pixels)
-scnsize = get(0,'ScreenSize');%Get the size of the screen in pixels
-set(hPlot,'OuterPosition',scnsize);%Display fig1 in order to completely fill the screen
-ax = gca;
-
 switch PlotType
     
     % Replot the distribution of diffusion coefficient
@@ -16,13 +10,16 @@ switch PlotType
     
     case 1
         
+        ax = h.MainAxes;
+        set(h.sptPALM_DisplayMovie, 'Visible', 'on');
+        
         DiffDistribution = h.DiffDistribution;
         FittedDiffDistribution = h.FittedDiffDistribution;
         D_mean = h.D_mean;
         
         switch NbrGaussianFit
             case 1
-                              
+                
                 Bin = DiffDistribution(:,1);
                 N = DiffDistribution(:,2);
                 BinFit = FittedDiffDistribution(:,1);
@@ -77,6 +74,9 @@ switch PlotType
         % --------------------
         
     case 2
+        
+        ax = h.MainAxes;
+        set(h.sptPALM_DisplayMovie, 'Visible', 'on');
         
         MSD_FIT = h.MSD_FIT;
         D_mean = h.D_mean;
@@ -140,6 +140,13 @@ switch PlotType
         
     case 3
         
+        hPlot = figure;
+        set(0,'Units','pixels'); %Define the type of units used later for the position (here in pixels)
+        scnsize = get(0,'ScreenSize');%Get the size of the screen in pixels
+        set(hPlot,'OuterPosition',scnsize);%Display fig1 in order to completely fill the screen
+        ax = gca;
+        
+        
         Reconstructed_Traj_ROI = h.Reconstructed_Traj_ROI;
         NTraj_ROI = size(Reconstructed_Traj_ROI,1);
         
@@ -194,6 +201,13 @@ switch PlotType
         % -------------
         
     case 4
+        
+        hPlot = figure;
+        set(0,'Units','pixels'); %Define the type of units used later for the position (here in pixels)
+        scnsize = get(0,'ScreenSize');%Get the size of the screen in pixels
+        set(hPlot,'OuterPosition',scnsize);%Display fig1 in order to completely fill the screen
+        ax = gca;
+        
         
         if NbrGaussianFit == 1
             hwarn = warndlg('This kind of plot cannot be plotted for this analysis, only one population was fitted');

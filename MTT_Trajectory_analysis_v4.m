@@ -37,6 +37,12 @@ FontSize = h.FontSize;
 DiffCalculationMethod = get(h.DiffusionCalculationMethod, 'Value');
 Reconstructed_Traj = h.Reconstructed_Traj;
 
+%% Make sure the display window is visible
+%% =======================================
+
+ax = h.MainAxes;
+set(h.sptPALM_DisplayMovie, 'Visible', 'on');
+
 %% Remove the results from the previous analysis from structure "h" and 
 %% reinitialize the structure "Results"
 %% ====================================
@@ -56,14 +62,6 @@ Results.PixelSize = PixelSize;
 Results.AcquisitionTime = AcquisitionTime;
 Results.Reconstructed_Traj = Reconstructed_Traj;
 
-%% Open the figure where the results will be saved
-%% ===============================================
-
-hPlot = figure;
-set(0,'Units','pixels'); %Define the type of units used later for the position (here in pixels)
-scnsize = get(0,'ScreenSize');%Get the size of the screen in pixels
-set(hPlot,'OuterPosition',scnsize);%Display fig1 in order to completely fill the screen
-
 %% Filter the trajectories according to the parameters selected
 %% ============================================================
 
@@ -75,7 +73,7 @@ h.Reconstructed_Traj_Filtered = Reconstructed_Traj_Filtered;
 %% only the trajectories detected within the ROI
 %% =============================================
 
-[h, Area, Reconstructed_Traj_ROI, NTraj_ROI] = Select_Trajectories_ROI(h, Results, hPlot, Reconstructed_Traj_Filtered, PixelSize);
+[h, Area, Reconstructed_Traj_ROI, NTraj_ROI] = Select_Trajectories_ROI(h, Results, ax, Reconstructed_Traj_Filtered, PixelSize);
 set(h.NTrajectoriesROI, 'String', num2str(NTraj_ROI));  % Display the # of trajectories detected within the ROI
 h.Reconstructed_Traj_ROI = Reconstructed_Traj_ROI;
 
@@ -131,12 +129,12 @@ h.Dapp = Dapp;
 %% Plot the distribution of apparent diffusion coefficient
 %% =======================================================
 
-figure(hPlot)
+axes(ax)
 hold off
 cla
 
 LogDapp = log10(Dapp);
-[NbrGaussianFit, D_mean, varargout] = FitGaussianDistribution_v2(LogDapp, MSD_all, FontSize, hPlot, round(MaxDisplayTime*1000/AcquisitionTime), Reconstructed_Traj_MSD_accepted, DiffCalculationMethod);
+[NbrGaussianFit, D_mean, varargout] = FitGaussianDistribution_v2(LogDapp, MSD_all, FontSize, ax, round(MaxDisplayTime*1000/AcquisitionTime), Reconstructed_Traj_MSD_accepted, DiffCalculationMethod);
 MSD_FIT = varargout{1};
 
 T = cat(2, LogDapp(:,1), Dapp(:,1));
@@ -148,8 +146,7 @@ writetable(T, 'Saved_Diffusion_Coeff.txt');
 
 Lag = 1 : 1 : size(MSD_FIT,1);
 
-figure(hPlot)
-ax = gca;
+axes(ax)
 hold off
 cla
 
@@ -207,14 +204,15 @@ else
     
 end
 
-saveas(hPlot, 'MSD_Curves.png');
+saveas(ax, 'MSD_Curves.png');
 
 %% The trajectories are plotted on a single graph
 %% ==============================================
 
-figure(hPlot)
-hold off
-cla
+hPlot = figure;
+set(0,'Units','pixels'); %Define the type of units used later for the position (here in pixels)
+scnsize = get(0,'ScreenSize');%Get the size of the screen in pixels
+set(hPlot,'OuterPosition',scnsize);%Display fig1 in order to completely fill the screen
 
 if isfield(h, 'AvIm')
     imagesc(h.AvIm)
@@ -369,4 +367,3 @@ fclose(fileID);
 set(h.SaveForTesseler, 'Enable', 'on')
 set(h.PlotPreviousAnalysis, 'Enable', 'on')
 set(h.DataTypePlot, 'Enable', 'on')
-close(hPlot)

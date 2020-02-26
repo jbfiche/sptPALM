@@ -1,4 +1,4 @@
-function [h, Area, Reconstructed_Traj_ROI, NTraj] = Select_Trajectories_ROI(h, Results, hPlot, Reconstructed_Traj, PixelSize)
+function [h, Area, Reconstructed_Traj_ROI, NTraj] = Select_Trajectories_ROI(h, Results, ax, Reconstructed_Traj, PixelSize)
 
 %% In the previous version of the software, a "ROI.mat" was created in order
 %% to save the ROI. It was abandonned later but, in order to avoid redifining
@@ -43,7 +43,7 @@ switch DefineROI
     
     case 'Define ROI'
         
-        figure(hPlot)
+        axes(ax)
         hold off
         cla
         
@@ -137,7 +137,7 @@ switch DefineROI
         AvIm = h.AvIm;
         nROI = size(ROI,2);
         
-        figure(hPlot)
+        axes(ax)
         hold off
         cla
         

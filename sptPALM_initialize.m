@@ -136,7 +136,11 @@ switch Action
         end
         
         if isfield(Results, 'MaxStepLength')
-            set(h.MaxStepLength, 'String', num2str(Results.MaxStepLength));
+            if isnan(Results.MaxStepLength)
+                set(h.MaxStepLength, 'String', '');
+            else
+                set(h.MaxStepLength, 'String', num2str(Results.MaxStepLength));
+            end
             set(h.MaxBlinks, 'String', num2str(Results.MaxBlinks));
             set(h.MinTrajLength, 'String', num2str(Results.MinTrajLength_MSDCalculation));
             set(h.MinNumberPoints, 'String', num2str(Results.MinNPoint));
@@ -217,8 +221,8 @@ switch Action
             h.MSD_FIT = Results.MSD_FIT;
         end
         
-        if isfield(Results, 'NbrLorentzianFit')
-            h.NbrLorentzianFit = Results.NbrLorentzianFit;
+        if isfield(Results, 'NbrGaussianFit')
+            h.NbrGaussianFit = Results.NbrGaussianFit;
         end
         
         if isfield(Results, 'Fraction')

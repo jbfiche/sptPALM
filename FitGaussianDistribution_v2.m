@@ -1,4 +1,4 @@
-function [NbrGaussianFit, D_mean, varargout] = FitGaussianDistribution_v2(LogDapp, MSD_all, FontSize, hPlot, Lmax, Traj, DiffCalculationMethod)
+function [NbrGaussianFit, D_mean, varargout] = FitGaussianDistribution_v2(LogDapp, MSD_all, FontSize, ax, Lmax, Traj, DiffCalculationMethod)
 
 % Plot the histogram
 % ------------------
@@ -12,8 +12,8 @@ hist_Edges = hist.BinEdges;
 hist_Bin = (hist_Edges(1:end-1) + hist_Edges(2:end)) / 2;
 hist_Bin = hist_Bin';
 
+axes(ax)
 bar(hist_Bin,hist_Values)
-ax = gca;
 ax.FontSize = FontSize;
 axis square
 box on
@@ -46,7 +46,7 @@ if NbrGaussianFit == 2
     
     Gaussian2 = fittype( @(s1,x01,A1,s2,x02,A2,x) A1*exp(-((x - x01)/(2*s1)).^2) + A2*exp(-((x - x02)/(2*s2)).^2));
     [fitobject2,gof2] = fit(hist_Bin, hist_Values, Gaussian2, 'start', [s0,X0,A0,s1,X1,A1]);
-    disp(strcat('for the fit, R²=', num2str(100*gof2.rsquare), '%'))
+    disp(strcat('For the Gaussian fit, R²=', num2str(100*gof2.rsquare), '%'))
     
     % Find the intersection point between the two fits (estimation)
     % -------------------------------------------------------------
@@ -102,8 +102,7 @@ if NbrGaussianFit == 2
     % populations
     % -----------
     
-    figure(hPlot)
-    ax = gca;
+    axes(ax)
     hold off
     cla
     
@@ -131,7 +130,7 @@ else
     
     hold on
     plot(hist_Bin, GaussianFit, '--k', 'LineWidth',1)
-    disp(strcat('for the fit, R²=', num2str(100*gof1.rsquare), '%'))
+    disp(strcat('For the gaussian fit, R²=', num2str(100*gof1.rsquare), '%'))
     
     MSD_all_1 = MSD_all( LogDapp(:,1)>fitobject.x0-3*abs(fitobject.s) & LogDapp(:,1)<fitobject.x0+3*abs(fitobject.s) );
     MSD = zeros(Lmax, 3);
@@ -166,9 +165,9 @@ title(Title);
 % -------------
 
 if DiffCalculationMethod == 2
-    saveas(hPlot, 'Diffusion_distribution_Fit_Method.png');
+    saveas(ax, 'Diffusion_distribution_Fit_Method.png');
 else
-    saveas(hPlot, 'Diffusion_distribution_Weighted_Average_Method.png');
+    saveas(ax, 'Diffusion_distribution_Weighted_Average_Method.png');
 end
 
 % When detecting two populations, it splits the MSD into two arrays,

@@ -17,7 +17,7 @@
 % Copyright Centre National de la Recherche Scientifique, 2020.
 
 
-function [h, Repeat_Analysis] = Load_MTT_Tracking_Files_v2(h)
+function [h, Launch_Analysis] = Load_MTT_Tracking_Files_v2(h)
 
 %% Check whether an analysis was already run for this folder and
 %% if the results would be used again
@@ -30,13 +30,13 @@ set(h.FolderPath_Text, 'String', DirectoryName); % Display on the GUI the folder
 PreviousAnalysis = ~isempty(dir(h.ResultsFileName));
 
 if PreviousAnalysis
-    Repeat_Analysis = questdlg('A previous analysis with the same name was found. Do you want to used it?',...
-        'Reuse?', 'Load previous analysis', 'Erase', 'Cancel', 'Yes');
+    Launch_Analysis = questdlg('A previous analysis with the same name was found. Do you want to proceed anyway (previous data will be lost)?',...
+        'Previous data found?', 'Proceed', 'Load previous analysis', 'Cancel', 'Proceed');
 else
-    Repeat_Analysis = 'No';
+    Launch_Analysis = 'Proceed';
 end
 
-switch Repeat_Analysis
+switch Launch_Analysis
     
     case 'Cancel'
 
@@ -47,20 +47,16 @@ switch Repeat_Analysis
         set(h.PlotPreviousAnalysis, 'Enable', 'on')
         h = sptPALM_initialize(h, 'LoadPreviousData');
         
-        if isempty(h.FileToAnalyse)
-            warndlg('No MTT files were found. No analysis could be performed.')
-        else
-            set(h.AnalyseTrajectories, 'Enable', 'on')
-            set(h.DiffusionCalculationMethod, 'Enable', 'on')
-            
-            if isfield(h, 'NbrLorentzianFit') && isfield(h, 'FittedDiffDistribution') && isfield(h, 'DiffDistribution') && isfield(h, 'D_mean') && isfield(h, 'MSD_FIT')
-                set(h.SaveForTesseler, 'Enable', 'on')
-                set(h.PlotPreviousAnalysis, 'Enable', 'on')
-                set(h.DataTypePlot, 'Enable', 'on')
-            end
+        set(h.AnalyseTrajectories, 'Enable', 'on')
+        set(h.DiffusionCalculationMethod, 'Enable', 'on')
+        
+        if isfield(h, 'FittedDiffDistribution') && isfield(h, 'DiffDistribution') && isfield(h, 'D_mean') && isfield(h, 'MSD_FIT')
+            set(h.SaveForTesseler, 'Enable', 'on')
+            set(h.PlotPreviousAnalysis, 'Enable', 'on')
+            set(h.DataTypePlot, 'Enable', 'on')
         end
     
-    case 'Erase'
+    case 'Proceed'
         
         set(h.PlotPreviousAnalysis, 'Enable', 'off')
         

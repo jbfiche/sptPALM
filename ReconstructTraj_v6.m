@@ -1,6 +1,6 @@
 %*****************************
 %
-% ReconstructTraj_v5.m
+% ReconstructTraj_v6.m
 %
 % ****************************
 %
@@ -23,12 +23,13 @@
 
 
 
-function h = ReconstructTraj_v5(h)
+function h = ReconstructTraj_v6(h)
 
 FileToAnalyse = h.FileToAnalyse;
 AcquisitionTime = str2double(get(h.AcquisitionTime, 'String')); % in ms
 PixelSize = str2double(get(h.PixelSize, 'String')); % in �m
 FontSize = h.FontSize;
+ax = h.MainAxes;
 
 %% Check whether all the detections should be saved
 %% in a separate .txt file for Tesseler analysis
@@ -36,13 +37,13 @@ FontSize = h.FontSize;
 
 CreateTxtFile = h.Save_traj_txt.Value;
 
-%% Open the figure where the results will be saved
-%% ===============================================
-
-hPlot = figure;
-set(0,'Units','pixels'); %Define the type of units used later for the position (here in pixels)
-scnsize = get(0,'ScreenSize');%Get the size of the screen in pixels
-set(hPlot,'OuterPosition',scnsize);%Display fig1 in order to completely fill the screen
+% %% Open the figure where the results will be saved
+% %% ===============================================
+% 
+% hPlot = figure;
+% set(0,'Units','pixels'); %Define the type of units used later for the position (here in pixels)
+% scnsize = get(0,'ScreenSize');%Get the size of the screen in pixels
+% set(hPlot,'OuterPosition',scnsize);%Display fig1 in order to completely fill the screen
 
 %% For each MTT file, the trajectories are analyzed and saved in "Reconstructed_Traj"
 %% ==================================================================================
@@ -53,7 +54,6 @@ Localizations_all_average = [];
 Length_Traj = [];
 SingleStep_Length = [];
 
-tic
 hwaitbar = waitbar(0,strcat('Calculating the trajectories for file #1'));
 
 for Nfiles = 1 : numel(FileToAnalyse)
@@ -109,7 +109,7 @@ for Nfiles = 1 : numel(FileToAnalyse)
         end
     end
     
-    NaN_frames = find(isnan(Ymatrix(1,:))==1);
+   NaN_frames = find(isnan(Ymatrix(1,:)));
     if ~isempty(NaN_frames)
         for nframes = 1 : size(NaN_frames,2)
             
@@ -119,20 +119,21 @@ for Nfiles = 1 : numel(FileToAnalyse)
                 Ymatrix(:,NaN_frames(nframes)) = Ymatrix(:,NaN_frames(nframes)-1);
             end
         end
-    end
+    end   
     
-    % For the files generated on the MARS platforme, they are usually
-    % called AC0, AC1, AC2, ... and can therefore be orderd as a function
-    % of acquisition time.
-    % -------------------
+    % Retrieve the trajectories from the X/Ymatrix. Note that we define
+    % temporary cells/arrays for the trajectories and step length since it
+    % improves the loading speed instead of concatenating at each
+    % iteration.
+    % ----------
     
-    [~,MTTFileName,~] = fileparts(FileToAnalyse{Nfiles});
-    if isequal(MTTFileName(1:2), 'AC')
-        FileNumber = str2double(MTTFileName(3:4));
-    else
-        FileNumber = NFiles-1;
-    end
-    
+    Reconstructed_Traj_temp = cell(NTrajectory,1);
+    Length_Traj_temp = zeros(NTrajectory,1);
+    SingleStep_Length_temp = cell(NTrajectory,1);
+    Selected_Traj = zeros(NTrajectory,1);
+    Localizations_all_temp = cell(NTrajectory,1);
+    Localizations_all_average_temp = zeros(NTrajectory,4);
+      
     for ntraj = 1 : NTrajectory
         
         X = PixelSize*Xmatrix(ntraj,:);
@@ -169,17 +170,23 @@ for Nfiles = 1 : numel(FileToAnalyse)
         if size(Idx,2)>=2 && ~isempty(Idx_FirstDetection)
             
             D = D(1:Idx(end));
-            Reconstructed_Traj = cat(1, Reconstructed_Traj,...
-                cat(1, NFrames*FileNumber+(Idx_FirstDetection:Idx_FirstDetection+Idx(end)), X(Idx_FirstDetection:Idx_FirstDetection+Idx(end)), Y(Idx_FirstDetection:Idx_FirstDetection+Idx(end)), cat(2, 0, D)));
-            Length_Traj = cat(1, Length_Traj, (Idx(end)+1)*AcquisitionTime/1000);
+            Reconstructed_Traj_temp{ntraj} = cat(1, ...
+                NFrames*(Nfiles-1)+(Idx_FirstDetection:Idx_FirstDetection+Idx(end)), ...
+                X(Idx_FirstDetection:Idx_FirstDetection+Idx(end)), ...
+                Y(Idx_FirstDetection:Idx_FirstDetection+Idx(end)), ...
+                cat(2, 0, D));
+            Length_Traj_temp(ntraj) = (Idx(end)+1)*AcquisitionTime/1000;
+            Selected_Traj(ntraj) = 1;
             
+            Traj_single_step = [];
             for k = 1 : size(D,2)
                 if k==1 && D(k)>0
-                    SingleStep_Length = cat(1, SingleStep_Length, D(k));
+                    Traj_single_step = cat(1, Traj_single_step, D(k));
                 elseif k>1 && D(k)>0 && D(k-1)>0
-                    SingleStep_Length = cat(1, SingleStep_Length, D(k));
+                    Traj_single_step = cat(1, Traj_single_step, D(k));
                 end
             end
+            SingleStep_Length_temp{ntraj} = Traj_single_step;
         end
         
         % In case it is necessary, all the
@@ -193,7 +200,7 @@ for Nfiles = 1 : numel(FileToAnalyse)
                 x = transpose(X(Idx_FirstDetection:Idx_FirstDetection+Idx(end)));
                 y = transpose(Y(Idx_FirstDetection:Idx_FirstDetection+Idx(end)));
                 i = transpose(I(Idx_FirstDetection:Idx_FirstDetection+Idx(end)));
-                t = transpose(NFrames*FileNumber+(Idx_FirstDetection:Idx_FirstDetection+Idx(end)));
+                t = transpose(NFrames*(Nfiles-1)+(Idx_FirstDetection:Idx_FirstDetection+Idx(end)));
                 idx = i(:)>0;
                 
                 L = sum(idx);
@@ -201,27 +208,36 @@ for Nfiles = 1 : numel(FileToAnalyse)
                 y_av = sum(y(idx))/L;
                 i_av = sum(i(idx))/L;
                 
-                Localizations_all = cat(1, Localizations_all, [x(idx),y(idx), i(idx),t(idx)]);
-                Localizations_all_average = cat(1, Localizations_all_average, [x_av, y_av, i_av, L]);
+                Localizations_all_temp{ntraj} = [x(idx), y(idx), i(idx), t(idx)];
+                Localizations_all_average_temp(ntraj,:) = [x_av, y_av, i_av, L];
                 
             elseif size(Idx,2)==0 && ~isempty(Idx_FirstDetection)
                 
                 x = X(Idx_FirstDetection);
                 y = Y(Idx_FirstDetection);
                 i = I(Idx_FirstDetection);
-                t = NFrames*FileNumber+Idx_FirstDetection;
+                t = NFrames*(Nfiles-1)+Idx_FirstDetection;
                 idx = i(:)>0;
                 
-                Localizations_all = cat(1, Localizations_all, [x(idx),y(idx), i(idx),t(idx)]);
-                Localizations_all_average = cat(1, Localizations_all_average, [x, y, i, 1]);
+                Localizations_all_temp{ntraj} = [x(idx), y(idx), i(idx), t(idx)];
+                Localizations_all_average_temp(ntraj,:) = [x, y, i, 1];
                 
             end
         end
     end
+    
+    Reconstructed_Traj = cat(1, Reconstructed_Traj, Reconstructed_Traj_temp(Selected_Traj==1));
+    Length_Traj = cat(1, Length_Traj, Length_Traj_temp(Selected_Traj==1));
+    
+    SingleStep_Length_temp = SingleStep_Length_temp(Selected_Traj==1);
+    SingleStep_Length = cat(1, SingleStep_Length, cell2mat(SingleStep_Length_temp));
+    
+    Localizations_all_temp = Localizations_all_temp(Selected_Traj==1);
+    Localizations_all = cat(1, Localizations_all, cell2mat(Localizations_all_temp));
+    Localizations_all_average = cat(1, Localizations_all_average, Localizations_all_average_temp(Selected_Traj==1,:));
 end
 
 close(hwaitbar);
-toc
 
 h.SingleStep_Length = SingleStep_Length;
 h.Length_Traj = Length_Traj;
@@ -253,10 +269,9 @@ end
 %% defined or they tend to artificially shorten the trajectories
 %% =============================================================
 
-figure(hPlot)
+axes(ax)
 hold off
 cla
-ax = gca;
 
 [f1,x1] = ecdf(SingleStep_Length);
 
@@ -293,7 +308,7 @@ legend(sprintf('All values, Lmax = %.2f um', max(x1)), ...
     sprintf('All values without the 1.5%% longest, Lmax = %.2f um', max(x4)), ...
     sprintf('All values without the 2%% longest, Lmax = %.2f um', max(x5)),'Location', 'southeast');
 
-saveas(hPlot, 'Cumulative_Distribution_LengthStep.png');
+saveas(ax, 'Cumulative_Distribution_LengthStep.png');
 
 % % Replot the zoom on the part representing the 10 last percents of the
 % % cumulative distribution
@@ -313,29 +328,31 @@ saveas(hPlot, 'Cumulative_Distribution_LengthStep.png');
 %% last bin.
 %% ========
 
-figure(hPlot)
+axes(ax)
 hold off
 cla
-ax = gca;
 
 Length_Traj = sort(Length_Traj);
 Max99p = Length_Traj(round(length(Length_Traj)*0.99));
-Bin = 0 : AcquisitionTime/1000 : Max99p;
-[counts,~] = hist(Length_Traj, Bin);
+bin = 0 : AcquisitionTime/1000 : Max99p;
+hist = histogram(Length_Traj, bin, 'Normalization', 'probability');
+
+counts = hist.Values;
+bin = (hist.BinEdges(2:end) + hist.BinEdges(1:end-1))/2;
 
 Cumul = 0;
-for n1 = 1 : size(Bin,2)
+for n1 = 1 : size(bin,2)
     Cumul = Cumul + counts(n1)/sum(counts);
     if Cumul>0.8
-        T80p = Bin(n1);
+        T80p = bin(n1);
         break
     end
 end
 
-for n2 = n1 : size(Bin,2)
+for n2 = n1 : size(bin,2)
     Cumul = Cumul + counts(n2)/sum(counts);
     if Cumul>0.9
-        T90p = Bin(n2);
+        T90p = bin(n2);
         break
     end
 end
@@ -346,7 +363,7 @@ end
 % fitobject = fit(X', Y', 'exp1');
 % BinFit = Bin(Idx_NonZero(1)) : 0.01 : Max99p;
 
-plot(Bin, counts, '--ob', 'MarkerSize', 5, 'LineWidth', 0.5)
+% plot(Bin, counts, '--ob', 'MarkerSize', 5, 'LineWidth', 0.5)
 hold on
 plot([T80p, T80p], [0, max(counts)], '--g', 'LineWidth', 0.5)
 plot([T90p, T90p], [0, max(counts)], '--r', 'LineWidth', 0.5)
@@ -357,8 +374,6 @@ axis([0 Max99p 0 max(counts)])
 axis square
 title('Trajectories duration distribution')
 xlabel('Trajectories duration (s)')
-ylabel('Counts')
+ylabel('Fraction of trajectories')
 legend('Length distribution', '80% limit', '90% limit', 'Location', 'northeast')
-saveas(hPlot, 'Trajectories_duration.png');
-
-close(hPlot)
+saveas(ax, 'Trajectories_duration.png');
