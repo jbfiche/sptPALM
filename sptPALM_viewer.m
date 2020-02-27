@@ -51,7 +51,7 @@ h.sptPALM_DisplayMovie = figure('Visible','on',...
     'Name','sptPALM_Display_Panel',...
     'NumberTitle','off',...
     'Toolbar','none',...
-    'Resize','off',...
+    'Resize','off',...252
     'Color',defaultBackground,...
     'DefaultUicontrolUnits','Pixels',...
     'DefaultUipanelUnits','Pixels',...
@@ -109,10 +109,10 @@ SimulationParameters.ImageSize = 252; % px
 SimulationParameters.PixelSize = 0.102; % in �m
 SimulationParameters.AcquisitionTime = 0.02; % in s
 SimulationParameters.Offset = 90; % intensity offset for the image
-SimulationParameters.Noise1 = 60; % parameter lambda for the Poisson distribution describing the noise of the EMCCD camera
-SimulationParameters.Noise2 = 0.25; % parameter describing the normal noise for each pixel and linked to the photon detection
+SimulationParameters.ShotNoise = 60; % parameter lambda for the Poisson distribution describing the noise of the EMCCD camera
+SimulationParameters.ReadoutNoise = 0.25; % parameter describing the normal readout noise for each pixel and linked to the photon detection
 SimulationParameters.GaussStampSize = 5; % parameters defining the half-size of the window where the 2D gaussian will be calculated
-SimulationParameters.LimitResolution = 0.15; % in �m
+SimulationParameters.LimitResolution = 0.15; % in um
 SimulationParameters.MeanSingleEventIntensity = 80; % Mean intensity of single emitters
 
 h.SimulationParameters = SimulationParameters;
@@ -508,10 +508,10 @@ set(h.LaunchSimulation,'callback', @LaunchSimulation);
         if ~isempty(NewAquisitionParameters)
             h.SimulationParameters.ImageSize = str2double(NewAquisitionParameters{1}); % px
             h.SimulationParameters.AcquisitionTime = str2double(NewAquisitionParameters{2}); % s
-            h.SimulationParameters.PixelSize = str2double(NewAquisitionParameters{3}); % �m
+            h.SimulationParameters.PixelSize = str2double(NewAquisitionParameters{3}); % um
             h.SimulationParameters.Offset = str2double(NewAquisitionParameters{4}); % intensity offset for the image
-            h.SimulationParameters.Noise1 = str2double(NewAquisitionParameters{5}); % parameter lambda for the Poisson distribution describing the noise of the EMCCD camera
-            h.SimulationParameters.Noise2 = str2double(NewAquisitionParameters{6}); % parameter describing the normal noise for each pixel and linked to the photon detection
+            h.SimulationParameters.ShotNoise = str2double(NewAquisitionParameters{5}); % parameter lambda for the Poisson distribution describing the noise of the EMCCD camera
+            h.SimulationParameters.ReadoutNoise = str2double(NewAquisitionParameters{6}); % parameter describing the normal noise for each pixel and linked to the photon detection
             h.SimulationParameters.GaussStampSize = str2double(NewAquisitionParameters{7}); % parameters defining the half-size of the window where the 2D gaussian will be calculated
             h.SimulationParameters.LimitResolution = str2double(NewAquisitionParameters{8}); % in �m
             h.SimulationParameters.MeanSingleEventIntensity = str2double(NewAquisitionParameters{9}); % Mean intensity of single emitters
