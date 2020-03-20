@@ -1,4 +1,4 @@
-function [MSD_all,MSD_weight,Reconstructed_Traj_ROI] = MSD_calculation(Reconstructed_Traj_ROI,NTraj_ROI,MinNPointMSD,p);
+function [MSD_all,MSD_weight,Reconstructed_Traj_ROI] = MSD_calculation(Reconstructed_Traj_ROI,NTraj_ROI,MinNPointMSD,p)
 
 MSD_all = cell(NTraj_ROI,1);
 MSD_weight = cell(NTraj_ROI,1);
