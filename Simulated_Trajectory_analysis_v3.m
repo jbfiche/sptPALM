@@ -18,7 +18,7 @@
 % -------------------------------------------------------------------------
 % Copyright Centre National de la Recherche Scientifique, 2020.
 
-function fileID = Simulated_Trajectory_analysis_v3(hPlot, FolderName, MaxBlink, MinNPoint, MinTrajLength_MSDCalculation, AcquisitionTime, PixelSize, MaxDisplayTime, p, MinNPointMSD, MaxStepLength, Reconstructed_Traj, pc)
+function fileID = Simulated_Trajectory_analysis_v3(hPlot, FolderName, MaxBlink, MinNPoint, MinTrajLength_MSDCalculation, AcquisitionTime, MaxDisplayTime, p, MinNPointMSD, Reconstructed_Traj, PixelSize, pc)
 
 %% Parameter for the analysis
 %% ==========================
@@ -26,13 +26,10 @@ function fileID = Simulated_Trajectory_analysis_v3(hPlot, FolderName, MaxBlink, 
 FontSize = 15;
 
 %% Filter the trajectories according to the parameters selected.
-%% Note that the trajectories stored in the variable "Reconstructed_Traj" are
-%% initially expressed in pixels. Therefore they are converted before in um.
-%% ========================================================================
+%% =============================================================
 
-[Reconstructed_Traj_ROI, NTraj_ROI] = Filter_Trajectories_simulation_v1(PixelSize, Reconstructed_Traj, MaxBlink, MinTrajLength_MSDCalculation, MinNPoint);
+[Reconstructed_Traj_ROI, NTraj_ROI] = Filter_Trajectories_simulation_v1(Reconstructed_Traj, MaxBlink, MinTrajLength_MSDCalculation, MinNPoint);
 
-fprintf('\r\n');
 fprintf('\r\n');
 fprintf('------------------------------------------------------\r\n');
 fprintf('%i trajectories have been selected for the calculation', NTraj_ROI)
@@ -49,7 +46,7 @@ else
 end
 
 NTraj_MSD = size(MSD_all,1);
-fprintf('%i trajectories have been selected for the calculation', NTraj_MSD)
+fprintf('%i trajectories have been selected for the calculation (after MSD calculation)', NTraj_MSD)
 fprintf('\r\n');
 
 %% The apparent diffusion coefficient is calculated for each single trajectory
@@ -72,10 +69,10 @@ end
 NTraj_Diff_Method1 = size(Dapp_Method1,1);
 NTraj_Diff_Method2 = size(Dapp_Method2,1);
 
-fprintf('%i trajectories have been selected for the calculation (method based on the fit)', NTraj_Diff_Method1)
-fprintf('\r\n');
-fprintf('%i trajectories have been selected for the calculation (method based on the weighted average)', NTraj_Diff_Method2)
-fprintf('\r\n');
+fprintf('\n');
+fprintf('%i trajectories have been selected for the calculation (method based on the fit) \r', NTraj_Diff_Method1)
+fprintf('%i trajectories have been selected for the calculation (method based on the weighted average) \r', NTraj_Diff_Method2)
+fprintf('\n');
 
 %% Plot the distribution of apparent diffusion coefficient for two methods
 %% =======================================================================
@@ -97,9 +94,11 @@ for Method = 1 : 2
     
     if Method == 1
         MSD_FIT_Method1 = varargout{1};
+        D_mean_Method1 = D_mean;
         saveas(hPlot, 'Diffusion_distribution_Fit_Method.png');
     else
         MSD_FIT_Method2 = varargout{1};
+        D_mean_Method2 = D_mean;
         saveas(hPlot, 'Diffusion_distribution_Weighted_Average_Method.png');
     end
 end
@@ -111,8 +110,10 @@ for Method = 1 : 2
     
     if Method == 1
         MSD_FIT = MSD_FIT_Method1;
+        D_mean = D_mean_Method1;
     else
         MSD_FIT = MSD_FIT_Method2;
+        D_mean = D_mean_Method2;
     end
     
     Lag = 1 : 1 : size(MSD_FIT,1);
@@ -198,8 +199,6 @@ fprintf(fileID, '\r\n %s', 'Number of points used to calculate the apparent D');
 fprintf(fileID, '\n\n\n %4.2f\n', p);
 fprintf(fileID, '\r\n %s', 'Minimum number of distance values used to calculate each point on the MSD curve');
 fprintf(fileID, '\n\n\n %4.2f\n', MinNPointMSD);
-fprintf(fileID, '\r\n %s', 'Maximum accepted distance separating two consecutive detections');
-fprintf(fileID, '\n\n\n %4.2f\n', MaxStepLength);
 
 fprintf(fileID, '\r\n');
 fprintf(fileID, '\r\n %s', 'Acquisition time (ms)');

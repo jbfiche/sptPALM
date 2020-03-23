@@ -3,7 +3,8 @@ function [MSD_all,MSD_weight,Reconstructed_Traj_ROI] = MSD_calculation(Reconstru
 MSD_all = cell(NTraj_ROI,1);
 MSD_weight = cell(NTraj_ROI,1);
 Idx_TrajAcceptedMSD = zeros(NTraj_ROI,1);
-disp('Calculating the MSD for each trajectories ...')
+
+fprintf('Calculating the MSD for each trajectories ...     ')
 
 for ntraj = 1 : NTraj_ROI
     
@@ -11,6 +12,8 @@ for ntraj = 1 : NTraj_ROI
     Weight = [];
     Traj = Reconstructed_Traj_ROI{ntraj};
     LagMax = (Traj(1,end) - Traj(1,1)); % Calculate the maximum lag time for this trajectory
+    
+    fprintf('\b\b\b\b%03i%%', round(100*ntraj/NTraj_ROI))
     
     % Calculate the MSD. The lagtime goes from "1" to "LagTime-(MinNPointMSD-1)"
     % since we want, for each value of the MSD, an average over at least 
@@ -50,7 +53,7 @@ for ntraj = 1 : NTraj_ROI
         
         if nMSD > MinNPointMSD
             MSD(lag) = mean(D_all);
-            Weight(lag) = std(D_all);
+            Weight(lag) = length(D_all);
         else
             break
         end
@@ -73,4 +76,5 @@ end
 MSD_all = MSD_all(Idx_TrajAcceptedMSD==1);
 MSD_weight = MSD_weight(Idx_TrajAcceptedMSD==1);
 Reconstructed_Traj_ROI = Reconstructed_Traj_ROI(Idx_TrajAcceptedMSD==1);
-disp('MSD calculation done.')
+
+fprintf('\r\n');

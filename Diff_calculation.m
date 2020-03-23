@@ -1,7 +1,10 @@
 function [MSD_all,Reconstructed_Traj_MSD_accepted,Dapp] = Diff_calculation(DiffCalculationMethod,MSD_all,MSD_weight,p,AcquisitionTime,Reconstructed_Traj_MSD)
 
-disp(' ')
-disp('Starting calculation of the diffusion coefficient ...')
+if DiffCalculationMethod == 1
+    fprintf('Starting calculation of the diffusion coefficient with the average method ...     ')
+else
+    fprintf('Starting calculation of the diffusion coefficient with the fit method ...     ')
+end
 
 Lag = 1 : 1 : p;
 Lag = Lag*AcquisitionTime/1000;
@@ -9,12 +12,16 @@ Lag = Lag*AcquisitionTime/1000;
 Dapp = zeros(size(MSD_all,1),1);
 Idx_MSD_accepted = zeros(size(MSD_all,1),1);
 
-for nMSD = 1 : size(MSD_all,1)
+N_MSD = size(MSD_all,1);
+
+for nMSD = 1 : N_MSD
     
     MSD = MSD_all{nMSD}(1:p);
     Weight = MSD_weight{nMSD}(1:p);
     Nnan = sum(isnan(MSD));
     Nzeros = sum(MSD(:)>0);
+    
+    fprintf('\b\b\b\b%03i%%', round(100*nMSD/N_MSD))
     
     if DiffCalculationMethod == 2 && size(MSD,2)>=p
         
@@ -49,7 +56,7 @@ for nMSD = 1 : size(MSD_all,1)
         % -------------------------------------
         
         if Nzeros == p && Nnan == 0
-            Dapp(nMSD) = sum(MSD.*Weight./(4*Lag))/sum(Weight);
+            Dapp(nMSD) = sum(MSD.*Weight./Lag)/(4*sum(Weight));
             Idx_MSD_accepted(nMSD) = 1;
         end
         
@@ -58,5 +65,5 @@ end
 
 MSD_all = MSD_all(Idx_MSD_accepted==1); % Keep only the points in MSD_all that were used to calculate the distribution of apparent diffusion coefficient
 Reconstructed_Traj_MSD_accepted = Reconstructed_Traj_MSD(Idx_MSD_accepted==1); % Keep only the trajectories that associated to the accepted MSD
-disp('Calculation for the diffusion coefficient is done.')
-disp(' ')
+Dapp = Dapp(Idx_MSD_accepted==1);
+fprintf('\r')

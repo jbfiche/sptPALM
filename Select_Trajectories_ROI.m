@@ -72,7 +72,7 @@ switch DefineROI
         for ntraj = 1 : NTraj_init
             Traj_average(:,ntraj) = mean(Reconstructed_Traj{ntraj},2);
         end
-        plot(Traj_average(3,:)/PixelSize, Traj_average(2,:)/PixelSize, 'or')
+        plot(Traj_average(3,:)/PixelSize, Traj_average(2,:)/PixelSize, '.r')
         
         % Define the ROI by clicking directly on the image
         % ------------------------------------------------
@@ -191,7 +191,7 @@ if nROI > 0
     Traj_average = Traj_average(:,IN_all_ROI==1);
     NTraj = size(Reconstructed_Traj_ROI, 1);
     
-    plot(Traj_average(3,:)/PixelSize, Traj_average(2,:)/PixelSize, 'ob')
+    plot(Traj_average(3,:)/PixelSize, Traj_average(2,:)/PixelSize, '.b')
     
 else
     Reconstructed_Traj_ROI = Reconstructed_Traj;

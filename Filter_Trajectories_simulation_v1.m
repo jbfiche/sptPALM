@@ -1,4 +1,4 @@
-function [Reconstructed_Traj_Filtered, NTraj] = Filter_Trajectories_simulation_v1(PixelSize, Reconstructed_Traj, MaxBlink, MinTrajLength, MinNPoint)
+function [Reconstructed_Traj_Filtered, NTraj] = Filter_Trajectories_simulation_v1(Reconstructed_Traj, MaxBlink, MinTrajLength, MinNPoint)
 
 Reconstructed_Traj_Filtered = {};
 
@@ -12,9 +12,9 @@ for nTraj = 1 : size(Reconstructed_Traj,1)
     Frame_Traj_Filtered = [];
     
     Frame = Traj(1,:);
-    X = PixelSize * Traj(2,:);
-    Y = PixelSize * Traj(3,:);
-    D = PixelSize * Traj(4,2:end);
+    X = Traj(2,:);
+    Y = Traj(3,:);
+    D = Traj(4,2:end);
     
     % Analyse the distances in order to detect the blinks. Remove the
     % points selected from the trajectory

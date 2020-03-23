@@ -3,7 +3,11 @@ function [NbrGaussianFit, D_mean, varargout] = FitGaussianDistribution_v2(LogDap
 % Plot the histogram
 % ------------------
 
-hist = histogram(LogDapp, 'Visible', 'off');
+MinBin = floor(10*min(LogDapp))/10;
+MaxBin = floor(10*max(LogDapp))/10;
+Edges = MinBin : 0.1 : MaxBin;
+
+hist = histogram(LogDapp, Edges, 'Visible', 'off');
 
 hist_Values = hist.Values;
 Ntot = sum(hist_Values);

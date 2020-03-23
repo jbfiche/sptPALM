@@ -23,8 +23,6 @@ function SimuDiff_v4(h)
 %% Definition of the parameters used for the simulation
 %% ====================================================
 
-ax = h.MainAxes;
-
 PixelSize = h.SimulationParameters.PixelSize; % in um
 AcquisitionTime = h.SimulationParameters.AcquisitionTime; % in s
 
@@ -82,8 +80,9 @@ cd(FolderName)
 %% the parameters defined for the emitters.
 %% ========================================
 
-disp('Calculating the trajectories...');
-disp('');
+clc
+fprintf('Calculating the trajectories...');
+fprintf('\r\n');
 
 NProteinsTot = NProteinsTot_Init;
 
@@ -123,21 +122,30 @@ for nFrame = 1 : NFrames
         % From it, it is possible to define all the positions of the
         % proteins during its movement assuming a Brownian motion and an
         % average diffusion coefficient. 
-        % The movement being brownian, the x and y coordinates are
-        % independant, each of them being described by a normal
-        % distribution N(0,sqrt(2Dt)). 
-        % ---------------------
+        % The movement being brownian, the distance r is described by a
+        % normal law N(0,sqrt(4Dt)). The x/y coordinates are then described 
+        % using the travelled distance r and the uniformly distributed
+        % angle theta.
+        %
+        % Note that the values r,x,y are expressed in um.
+        % -----------------------------------------------
         
         Traj = zeros(LifeTime,4);
-        Traj(1,:) = [nFrame, X, Y, 0];
+        Traj(1,:) = [nFrame, X*PixelSize, Y*PixelSize, 0];
         
         for dt = 1 : LifeTime-1
-            x = random('Normal', 0, sqrt(2*Diff*AcquisitionTime)/PixelSize);
-            y = random('Normal', 0, sqrt(2*Diff*AcquisitionTime)/PixelSize);
+            
+            r = random('Normal', 0, sqrt(4*Diff*AcquisitionTime));
+            theta = random('Uniform',0,2*pi);
+            
+            x = r*cos(theta);
+            y = r*sin(theta);
+            
             Traj(dt+1,:) = [nFrame+dt, ...
                 Traj(dt,2)+x, ...
                 Traj(dt,3)+y, ...
-                sqrt( x^2 + y^2 )];
+                r];
+
         end
             
         % Using the values of ton, toff and the LifeTime, the ON/OFF
@@ -238,14 +246,17 @@ set(hPlot,'OuterPosition',scnsize);%Display fig1 in order to completely fill the
 %% detection/activation time
 %% =========================
 
+fprintf('Plotting the trajectories...');
+fprintf('\r\n');
+
 Color = jet;
 NTraj = size(Trajectories, 1);
 ntraj_color = ceil(NTraj/size(Color,1));
 
 for ntraj = 1 : NTraj
     
-    X = Trajectories{ntraj}(2,:);
-    Y = Trajectories{ntraj}(3,:);
+    X = Trajectories{ntraj}(2,:)/PixelSize;
+    Y = Trajectories{ntraj}(3,:)/PixelSize;
     line(Y, X, 'Color', Color(ceil(ntraj/ntraj_color),:),'LineWidth',1)
     
 end
@@ -265,7 +276,6 @@ MaxDisplayTime = 0.5; % (s) The maximum display time for the MSD curve
 p = 4; % Only the p first points from the MSD curve are used for the calculation of the diffusion coefficient
 MinNPoint = 0.75; % (%) minimum number of points for the trajectory
 MinNPointMSD = 3; % Minimum number of point for an estimation of the MSD at a specific lag time
-MaxStepLength = 10; % (frame) Maximum distance between two consecutive detections in the same trajectory
 pc = h.Parallel_computing.Value;
 
 fileID = Simulated_Trajectory_analysis_v3(hPlot, ...
@@ -274,12 +284,11 @@ fileID = Simulated_Trajectory_analysis_v3(hPlot, ...
     MinNPoint, ...
     MinTrajLength, ...
     1000*AcquisitionTime, ...
-    PixelSize, ...
     MaxDisplayTime, ...
     p, ...
     MinNPointMSD, ...
-    MaxStepLength, ...
     Trajectories, ...
+    PixelSize, ...
     pc);
 
 fprintf(fileID, '\r\n');
@@ -473,4 +482,3 @@ close(hwb)
 if verbose
     set(h.sptPALM_DisplayMovie, 'Visible', 'off');
 end
-

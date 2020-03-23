@@ -8,8 +8,8 @@ close all
 
 i = 0; % Intensity in photons
 q = 0.9; % Quantum yield
-c = 5; % Charges (in electrons) that are created during the transfer from the detector to the EM register
-g = 200; % Electronic gain of the emCCD detector
+c = 1; % Charges (in electrons) that are created during the transfer from the detector to the EM register
+g = 100; % Electronic gain of the emCCD detector
 f = 63; % A/D factor or detector sensitivity
 r = 72; % Readout noise
 

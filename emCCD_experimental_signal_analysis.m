@@ -12,7 +12,9 @@ clc
 % gain of 0
 % ---------
 
-cd('/mnt/PALM_dataserv/DATA/JB/2020/DATA_Alexandre/Test_emCCD/')
+% cd('/mnt/PALM_dataserv/DATA/JB/2020/DATA_Alexandre/Test_emCCD/')
+cd('/home/fiche/Desktop/Alexandre_data/DATA_Alexandre/Test_emCCD/')
+
 imName = 'gain_0_50ms_background.tif';
 Nframes = imfinfo(imName);
 Nframes = length(Nframes)-1;

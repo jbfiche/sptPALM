@@ -121,6 +121,7 @@ h.SimulationParameters = SimulationParameters;
 % Set the Callbacks
 % -----------------
 
+set(h.Saving_file_name, 'callback', @UpdateSavingFileName);
 set(h.LoadMTT, 'callback', @LoadMTT);
 set(h.Load_Previous_analysis, 'callback', @Load_Previous_analysis);
 set(h.MinTrajLength, 'callback', @CheckMinTrajSize);
@@ -157,6 +158,13 @@ set(h.LaunchSimulation,'callback', @LaunchSimulation);
         end
     end
 
+%% Change the saving file name
+%% ===========================
+
+    function UpdateSavingFileName(~,~)
+        h.ResultsFileName = h.Saving_file_name.String;
+    end
+        
 %% Load previous analysis
 %% ======================
 
