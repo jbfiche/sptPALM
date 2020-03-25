@@ -30,11 +30,11 @@ nTraj = 1;
 
 if ~isnan(MaxStepLength)
     
-    wtb = waitbar(0, 'removing misconnexions ...');
+    fprintf('Removing misconnexions ...     ')
     
     while nTraj <= NTraj
         
-        waitbar(nTraj/NTraj)
+        fprintf('\b\b\b\b%03i%%', round(100*nTraj/NTraj))
         Traj = Reconstructed_Traj{nTraj};
         
         Frame = Traj(1,:);
@@ -94,8 +94,7 @@ if ~isnan(MaxStepLength)
         nTraj = nTraj + 1;
     end
     
-    close(wtb)
-    
+    fprintf('\r\n')
 end
 
 %% Start the analysis of all the trajectories to calculate the MSD and diffusion

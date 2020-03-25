@@ -81,11 +81,13 @@ h.Reconstructed_Traj_ROI = Reconstructed_Traj_ROI;
 %% (added as the fifth row)
 %% ========================
 
-if h.Parallel_computing.Value == 0
-    [MSD_all,MSD_weight,Reconstructed_Traj_MSD] = MSD_calculation(Reconstructed_Traj_ROI,NTraj_ROI,MinNPointMSD,p);
-else
-    [MSD_all,MSD_weight,Reconstructed_Traj_MSD] = MSD_calculation_parallel_computing(Reconstructed_Traj_ROI,NTraj_ROI,MinNPointMSD,p);
-end
+% if h.Parallel_computing.Value == 0
+%     [MSD_all,MSD_weight,Reconstructed_Traj_MSD] = MSD_calculation(Reconstructed_Traj_ROI,NTraj_ROI,MinNPointMSD,p);
+% else
+%     [MSD_all,MSD_weight,Reconstructed_Traj_MSD] = MSD_calculation_parallel_computing(Reconstructed_Traj_ROI,NTraj_ROI,MinNPointMSD,p);
+% end
+
+[MSD_all,MSD_weight,Reconstructed_Traj_MSD] = MSD_calculation(Reconstructed_Traj_ROI,NTraj_ROI,MinNPointMSD,p);
 
 NTraj_MSD = size(MSD_all,1);
 set(h.NTrajectoriesMSD, 'String', num2str(NTraj_MSD)); % Display the # of trajectories accepted for MSD calculation
@@ -116,11 +118,13 @@ end
 % for a lagtime of 1 frame
 % -------------------------
 
-if h.Parallel_computing.Value == 0
-    [MSD_all,Reconstructed_Traj_MSD_accepted,Dapp] = Diff_calculation(DiffCalculationMethod,MSD_all,MSD_weight,p,AcquisitionTime,Reconstructed_Traj_MSD);
-else
-    [MSD_all,Reconstructed_Traj_MSD_accepted,Dapp] = Diff_calculation_parallel_computing(DiffCalculationMethod,MSD_all,MSD_weight,p,AcquisitionTime,Reconstructed_Traj_MSD);
-end
+% if h.Parallel_computing.Value == 0
+%     [MSD_all,Reconstructed_Traj_MSD_accepted,Dapp] = Diff_calculation(DiffCalculationMethod,MSD_all,MSD_weight,p,AcquisitionTime,Reconstructed_Traj_MSD);
+% else
+%     [MSD_all,Reconstructed_Traj_MSD_accepted,Dapp] = Diff_calculation_parallel_computing(DiffCalculationMethod,MSD_all,MSD_weight,p,AcquisitionTime,Reconstructed_Traj_MSD);
+% end
+
+[MSD_all,Reconstructed_Traj_MSD_accepted,Dapp] = Diff_calculation(DiffCalculationMethod,MSD_all,MSD_weight,p,AcquisitionTime,Reconstructed_Traj_MSD);
 
 NTraj_Diff = size(Dapp,1);
 set(h.NTrajectoriesDiff, 'String', num2str(NTraj_Diff)); % Display the # of trajectories selected for D calculation

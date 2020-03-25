@@ -7,7 +7,11 @@ figure(hPlot)
 hold off
 clf
 
-hist = histogram(LogDapp, 'Visible', 'off');
+MinBin = floor(20*min(LogDapp))/20;
+MaxBin = floor(20*max(LogDapp))/20;
+Edges = MinBin : 0.05 : MaxBin;
+
+hist = histogram(LogDapp, Edges, 'Visible', 'off');
 
 hist_Values = hist.Values;
 Ntot = sum(hist_Values);
@@ -17,7 +21,6 @@ hist_Bin = (hist_Edges(1:end-1) + hist_Edges(2:end)) / 2;
 hist_Bin = hist_Bin';
 
 ax = gca;
-ax.FontSize = FontSize;
 
 bar(hist_Bin,hist_Values)
 axis square
@@ -144,6 +147,8 @@ else
     
     disp(strcat('X0=', num2str(fitobject.x0), '_ s0=', num2str(fitobject.s)));
 end
+
+ax.FontSize = FontSize;
 
 % Display the title on the graph, indicating when there are two populations
 % the two diffusion coefficients as well as the fraction of mobile

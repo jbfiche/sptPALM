@@ -18,7 +18,7 @@
 % -------------------------------------------------------------------------
 % Copyright Centre National de la Recherche Scientifique, 2020.
 
-function fileID = Simulated_Trajectory_analysis_v3(hPlot, FolderName, MaxBlink, MinNPoint, MinTrajLength_MSDCalculation, AcquisitionTime, MaxDisplayTime, p, MinNPointMSD, Reconstructed_Traj, PixelSize, pc)
+function fileID = Simulated_Trajectory_analysis_v3(hPlot, FolderName, MaxBlink, MinNPoint, MinTrajLength_MSDCalculation, AcquisitionTime, MaxDisplayTime, p, MinNPointMSD, Reconstructed_Traj, PixelSize)
 
 %% Parameter for the analysis
 %% ==========================
@@ -39,11 +39,7 @@ fprintf('\r\n');
 %% for each trajectory (added as the fifth row)
 %% ================================================
 
-if pc == 0
-    [MSD_all,MSD_weight,Reconstructed_Traj_MSD] = MSD_calculation(Reconstructed_Traj_ROI,NTraj_ROI,MinNPointMSD,p);
-else
-    [MSD_all,MSD_weight,Reconstructed_Traj_MSD] = MSD_calculation_parallel_computing(Reconstructed_Traj_ROI,NTraj_ROI,MinNPointMSD,p);
-end
+[MSD_all,MSD_weight,Reconstructed_Traj_MSD] = MSD_calculation(Reconstructed_Traj_ROI,NTraj_ROI,MinNPointMSD,p);
 
 NTraj_MSD = size(MSD_all,1);
 fprintf('%i trajectories have been selected for the calculation (after MSD calculation)', NTraj_MSD)
@@ -58,13 +54,8 @@ fprintf('\r\n');
 % for a lagtime of 1 frame
 % -------------------------
 
-if pc == 0
-    [MSD_all_Method1,Reconstructed_Traj_MSD_accepted_Method1,Dapp_Method1] = Diff_calculation(1,MSD_all,MSD_weight,p,AcquisitionTime,Reconstructed_Traj_MSD);
-    [MSD_all_Method2,Reconstructed_Traj_MSD_accepted_Method2,Dapp_Method2] = Diff_calculation(2,MSD_all,MSD_weight,p,AcquisitionTime,Reconstructed_Traj_MSD);
-else
-    [MSD_all_Method1,Reconstructed_Traj_MSD_accepted_Method1,Dapp_Method1] = Diff_calculation_parallel_computing(1,MSD_all,MSD_weight,p,AcquisitionTime,Reconstructed_Traj_MSD);
-    [MSD_all_Method2,Reconstructed_Traj_MSD_accepted_Method2,Dapp_Method2] = Diff_calculation_parallel_computing(2,MSD_all,MSD_weight,p,AcquisitionTime,Reconstructed_Traj_MSD);
-end
+[MSD_all_Method1,Reconstructed_Traj_MSD_accepted_Method1,Dapp_Method1] = Diff_calculation(1,MSD_all,MSD_weight,p,AcquisitionTime,Reconstructed_Traj_MSD);
+[MSD_all_Method2,Reconstructed_Traj_MSD_accepted_Method2,Dapp_Method2] = Diff_calculation(2,MSD_all,MSD_weight,p,AcquisitionTime,Reconstructed_Traj_MSD);
 
 NTraj_Diff_Method1 = size(Dapp_Method1,1);
 NTraj_Diff_Method2 = size(Dapp_Method2,1);

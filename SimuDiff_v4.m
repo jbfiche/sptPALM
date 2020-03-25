@@ -14,7 +14,7 @@
 % -------------------------------------------------------------------------
 % Specific: The trajectories are only Brownian.
 % -------------------------------------------------------------------------
-% To fix: 
+% To fix:
 % -------------------------------------------------------------------------
 % Copyright Centre National de la Recherche Scientifique, 2020.
 
@@ -27,9 +27,9 @@ PixelSize = h.SimulationParameters.PixelSize; % in um
 AcquisitionTime = h.SimulationParameters.AcquisitionTime; % in s
 
 NProteinsTot_Init = h.SimulationParameters.NProteinsTot_Init; % Define the total pool of proteins that can be activated and imaged
+MeanPhotons = h.SimulationParameters.MeanPhotons; % Average number of incident photons
 MeanProbActivation = h.SimulationParameters.MeanProbActivation; % The probability is defined as the mean number of protein activated per frame
 MeanPhotoBleachingTime = h.SimulationParameters.MeanPhotoBleachingTime; % in s
-MeanPhotons = h.SimulationParameters.MeanPhotons; % Average number of photons emitted
 Ton = h.SimulationParameters.Ton; % in s
 Toff1 = h.SimulationParameters.Toff1; % in s
 Toff2 = h.SimulationParameters.Toff2; % in s
@@ -39,11 +39,13 @@ MinTrajLength = h.SimulationParameters.MinTrajLength; %in frames
 
 ImageSize = h.SimulationParameters.ImageSize; % px
 Offset = h.SimulationParameters.Offset; % intensity offset for the image
-QY = h.SimulationParameters.QY; % quantum yield
-CCDsensitivity = h.SimulationParameters.CCDsensitivity; % CCD sensitivity (e/AD counts)
-ReadoutNoise = h.SimulationParameters.ReadoutNoise; % readout noise (e)
 GaussStampSize = h.SimulationParameters.GaussStampSize; % parameters defining the half-size of the window where the 2D gaussian will be calculated
 LimitResolution = h.SimulationParameters.LimitResolution; % in um
+
+QY = h.SimulationParameters.QY; % quantum yield
+Gain = h.SimulationParameters.Gain; % gain of the camera
+CCDsensitivity = h.SimulationParameters.CCDsensitivity; % CCD sensitivity (e/AD counts)
+ReadoutNoise = h.SimulationParameters.ReadoutNoise; % readout noise (e)
 
 Diff1 = str2double(get(h.Simulation_Diff1, 'String')); % um²/s
 Diff2 = str2double(get(h.Simulation_Diff2, 'String')); % um²/s
@@ -67,8 +69,6 @@ TrajLength = [];
 SingleStepLength = [];
 DetectionList = [];
 
-verbose = get(h.Simulation_Verbose, 'Value');
-
 %% Define the folder where the results of the analysis and the movies will
 %% be saved
 %% ========
@@ -81,8 +81,7 @@ cd(FolderName)
 %% ========================================
 
 clc
-fprintf('Calculating the trajectories...');
-fprintf('\r\n');
+fprintf('Calculating the trajectories ...     ')
 
 NProteinsTot = NProteinsTot_Init;
 
@@ -91,6 +90,8 @@ Toff1 = Toff1/AcquisitionTime;
 Toff2 = Toff2/AcquisitionTime;
 
 for nFrame = 1 : NFrames
+    
+    fprintf('\b\b\b\b%03i%%', round(100*nFrame/NFrames))
     
     % Define how many FPs are photo-activated for this frame
     % ------------------------------------------------------
@@ -121,9 +122,9 @@ for nFrame = 1 : NFrames
         
         % From it, it is possible to define all the positions of the
         % proteins during its movement assuming a Brownian motion and an
-        % average diffusion coefficient. 
+        % average diffusion coefficient.
         % The movement being brownian, the distance r is described by a
-        % normal law N(0,sqrt(4Dt)). The x/y coordinates are then described 
+        % normal law N(0,sqrt(4Dt)). The x/y coordinates are then described
         % using the travelled distance r and the uniformly distributed
         % angle theta.
         %
@@ -144,10 +145,10 @@ for nFrame = 1 : NFrames
             Traj(dt+1,:) = [nFrame+dt, ...
                 Traj(dt,2)+x, ...
                 Traj(dt,3)+y, ...
-                r];
-
-        end
+                abs(r)];
             
+        end
+        
         % Using the values of ton, toff and the LifeTime, the ON/OFF
         % properties of the molecule are calculated
         % -----------------------------------------
@@ -186,10 +187,13 @@ for nFrame = 1 : NFrames
         end
         
         % From the array "EmissionState", the lists of detections that
-        % will be used to build the simulation movie is created
-        % ---------------------------------------------------------
+        % will be used to build the simulation movie is created. Note that
+        % all the detections detected after the maximum number of frames
+        % are removed.
+        % ------------
         
         Traj = Traj(EmissionState==1,:);
+        Traj = Traj(Traj(:,1)<=NFrames,:);
         DetectionList = cat(1, DetectionList, Traj);
         
         % According to the values of "MaxBlink" and "MinTrajLength", the
@@ -233,6 +237,8 @@ for nFrame = 1 : NFrames
     end
 end
 
+fprintf('\r\n')
+
 %% Open the figure where the results will be saved
 %% ===============================================
 
@@ -241,13 +247,11 @@ set(0,'Units','pixels'); %Define the type of units used later for the position (
 scnsize = get(0,'ScreenSize');%Get the size of the screen in pixels
 set(hPlot,'OuterPosition',scnsize);%Display fig1 in order to completely fill the screen
 
-
 %% Plot all the trajectories - the color-code is a function of the
 %% detection/activation time
 %% =========================
 
-fprintf('Plotting the trajectories...');
-fprintf('\r\n');
+fprintf('Plotting the trajectories ...     ');
 
 Color = jet;
 NTraj = size(Trajectories, 1);
@@ -255,11 +259,15 @@ ntraj_color = ceil(NTraj/size(Color,1));
 
 for ntraj = 1 : NTraj
     
+    fprintf('\b\b\b\b%03i%%', round(100*ntraj/NTraj))
+    
     X = Trajectories{ntraj}(2,:)/PixelSize;
     Y = Trajectories{ntraj}(3,:)/PixelSize;
     line(Y, X, 'Color', Color(ceil(ntraj/ntraj_color),:),'LineWidth',1)
     
 end
+
+fprintf('\r')
 
 axis square
 axis off
@@ -276,7 +284,6 @@ MaxDisplayTime = 0.5; % (s) The maximum display time for the MSD curve
 p = 4; % Only the p first points from the MSD curve are used for the calculation of the diffusion coefficient
 MinNPoint = 0.75; % (%) minimum number of points for the trajectory
 MinNPointMSD = 3; % Minimum number of point for an estimation of the MSD at a specific lag time
-pc = h.Parallel_computing.Value;
 
 fileID = Simulated_Trajectory_analysis_v3(hPlot, ...
     FolderName, ...
@@ -288,8 +295,7 @@ fileID = Simulated_Trajectory_analysis_v3(hPlot, ...
     p, ...
     MinNPointMSD, ...
     Trajectories, ...
-    PixelSize, ...
-    pc);
+    PixelSize);
 
 fprintf(fileID, '\r\n');
 fprintf(fileID, '\r\n %s', 'Diffusion coefficient of population 1(um²/s)');
@@ -304,6 +310,10 @@ fprintf(fileID, '\r\n %s', 'Image size (px)');
 fprintf(fileID, '\n\n\n %4.2f\n', ImageSize);
 fprintf(fileID, '\r\n %s', 'Number of frames');
 fprintf(fileID, '\n\n\n %4.2f\n', NFrames);
+fprintf(fileID, '\r\n %s', 'Acquisition time (s)');
+fprintf(fileID, '\n\n\n %4.2f\n', AcquisitionTime);
+fprintf(fileID, '\r\n %s', 'Gain');
+fprintf(fileID, '\n\n\n %4.2f\n', Gain);
 fprintf(fileID, '\r\n %s', 'Intensity offset');
 fprintf(fileID, '\n\n\n %4.2f\n', Offset);
 fprintf(fileID, '\r\n %s', 'emCCD quantum yield QY');
@@ -374,13 +384,12 @@ ylabel('Cumulative distribution')
 title('Cumulative distribution of the step length')
 
 saveas(hPlot, 'Cumulative_distribution.png');
-
 close(hPlot)
 
 %% Create the simulated movie
 %% ==========================
 
-if verbose
+if get(h.Simulation_Verbose, 'Value') == 1
     set(h.sptPALM_DisplayMovie, 'Visible', 'on');
 end
 
@@ -396,23 +405,24 @@ end
 mkdir(FolderName, 'Simulated_Movies');
 cd('Simulated_Movies')
 
-% Initialize the template for the image according to the aquisition
-% parameters
-% ----------
+% Calculate the noise simulation for the emCCD detector according to the
+% parameters defined by the user
+% ------------------------------
 
-im0 = uint16(Offset*ones(ImageSize*ImageSize,1));
-[~,Idx] = sort(DetectionList(:,1));
-DetectionList = DetectionList(Idx,:);
+emCCD_noise_distribution = emCCD_signal_modelization(h);
 
-Gaussian_2D = @(x,y,x0,y0,s) MeanSingleEventIntensity*exp(-(x-x0).^2/s^2).*exp(-(y-y0).^2/s^2);
-[Xmesh,Ymesh] = meshgrid(-GaussStampSize:1:GaussStampSize);
-Xmesh = reshape(Xmesh, [(2*GaussStampSize+1)^2,1]);
-Ymesh = reshape(Ymesh, [(2*GaussStampSize+1)^2,1]);
+% Convert the positions saved in the variable "DetectionList" in pixel
+% --------------------------------------------------------------------
 
-hwb = waitbar(0, 'Calculating the movies ...');
-NMovies = ceil(NFrames/1000);
+DetectionList(:,2:3) = DetectionList(:,2:3)/PixelSize;
 
-% According to the simulated trajectories, all the detection were saved in
+% Initialize the template for a single emitter
+% --------------------------------------------
+
+Gaussian_2D = @(A,x,y,x0,y0,s) A/(s*sqrt(2*pi)) * exp(-(x-x0).^2/s^2).*exp(-(y-y0).^2/s^2);
+StampSize = (2*GaussStampSize+1)^2;
+
+% According to the simulated trajectories, all the detections were saved in
 % the array called "DetectionList". For each frame, the noise of the emCCD
 % detector is simulated based on a Poisson distribution (Noise1) and the
 % intensity detected for each emitter is simulated using the function
@@ -422,63 +432,98 @@ NMovies = ceil(NFrames/1000);
 % electronic amplification (Normal law).
 % -------------------------------------
 
+NMovies = ceil(NFrames/1000);
+
 for nmovie = 1 : NMovies
     
-    MovieName = strcat('AC', num2str(nmovie-1), '.tif');
+    fprintf('Calculating the movies # %i ...     ', nmovie)
+    MovieName = strcat('Simulation_', num2str(nmovie-1), '.tif');
     
-    for nframe = 1000*(nmovie-1)+1 : 1000*nmovie
+    for nframe = 1 : 1000
         
-        waitbar(nframe/NFrames);
+        fprintf('\b\b\b\b%03i%%', round(100*nframe/1000))
+        Frame = 1000*(nmovie-1)+nframe;
         
-        im = im0 + uint16(random('Poisson', Noise1, [ImageSize*ImageSize,1]));
-        im = reshape(im, [ImageSize, ImageSize]);
-        
-        EmittersList = DetectionList(DetectionList(:,1)==nframe, 2:3);
-        for nemitter = 1 : size(EmittersList,1)
+        if Frame <= NFrames
             
-            if EmittersList(nemitter,1)>0 && EmittersList(nemitter,1)<ImageSize && EmittersList(nemitter,2)>0 && EmittersList(nemitter,2)<ImageSize
+            % Initialize the image
+            % --------------------
+            
+            I_photon = zeros(ImageSize*ImageSize,1);
+            I_counts = zeros(ImageSize*ImageSize,1);
+            
+            % Calculate the position of each emitter on the image and the
+            % number of photons for each pixel
+            % --------------------------------
+            
+            EmittersList = DetectionList(DetectionList(:,1)==Frame, 2:3);
+            
+            for nemitter = 1 : size(EmittersList,1)
+                x = EmittersList(nemitter,1);
+                y = EmittersList(nemitter,2);
                 
-                Xpixel_mesh = round(EmittersList(nemitter,1)) + Xmesh;
-                Ypixel_mesh = round(EmittersList(nemitter,2)) + Ymesh;
-                Intensity = Gaussian_2D(Xpixel_mesh, Ypixel_mesh, EmittersList(nemitter,1), EmittersList(nemitter,2), LimitResolution/PixelSize);
+                [X,Y] = meshgrid(x-GaussStampSize:1:x+GaussStampSize , y-GaussStampSize:1:y+GaussStampSize);
+                X = reshape(round(X), [StampSize,1]);
+                Y = reshape(round(Y), [StampSize,1]);
+                Idx_within_im_border = find(X>0 & Y>0 & X<ImageSize & Y<ImageSize);
                 
-                for npixel = 1 : size(Xpixel_mesh,1)
-                    
-                    if Xpixel_mesh(npixel)>0 && Xpixel_mesh(npixel)<ImageSize && Ypixel_mesh(npixel)>0 && Ypixel_mesh(npixel)<ImageSize
-                        im(Xpixel_mesh(npixel), Ypixel_mesh(npixel)) = uint16(random('Poisson',Intensity(npixel))*(1+random('Normal', 1, Noise2)) + im(Xpixel_mesh(npixel), Ypixel_mesh(npixel)));
+                if ~isempty(Idx_within_im_border)
+                    Photons = Gaussian_2D(random('Poisson', MeanPhotons), X(Idx_within_im_border), Y(Idx_within_im_border), x, y, LimitResolution/PixelSize);
+                    LinearIdx = sub2ind([ImageSize,ImageSize], X(Idx_within_im_border), Y(Idx_within_im_border));
+                    I_photon(LinearIdx) = I_photon(LinearIdx) + Photons;
+                end
+            end
+            
+            I_photon = round(I_photon);
+            
+            % Using the model developped by Hirsch et al. for emCCD, calculate
+            % the A/D counts for each pixel
+            % -----------------------------
+            
+            Unique_Intensity = unique(I_photon);
+            
+            for n_value = 1 : length(Unique_Intensity)
+                
+                nphoton = Unique_Intensity(n_value);
+                Idx = find(I_photon == nphoton);
+                N = random('Uniform', 0, 1, [length(Idx),1]);
+                I_counts(Idx) = emCCD_noise_distribution{nphoton+1}(N);
+            end
+            
+            I_counts = round(I_counts);
+            
+            % Create the final simulated image and save it
+            % --------------------------------------------
+            
+            I_counts = uint16(Offset + I_counts);
+            im = reshape(I_counts, [ImageSize, ImageSize]);
+            
+            ImRegistered = 0;
+            while ~ImRegistered
+                try
+                    if Frame == 1
+                        imwrite(im, MovieName,'WriteMode','overwrite')
+                        ImRegistered = 1;
+                    else
+                        imwrite(im, MovieName,'WriteMode','append')
+                        ImRegistered = 1;
                     end
+                    
+                catch exception
+                    ImRegistered = 0;
                 end
             end
-        end
-        
-        ImRegistered = 0;
-        while ~ImRegistered
-            try
-                if nframe == 1
-                    imwrite(im, MovieName,'WriteMode','overwrite')
-                    ImRegistered = 1;
-                else
-                    imwrite(im, MovieName,'WriteMode','append')
-                    ImRegistered = 1;
-                end
-                
-            catch exception
-                ImRegistered = 0;
+            
+            if get(h.Simulation_Verbose, 'Value') == 1
+                axes(h.MainAxes)
+                cla
+                imagesc(im)
+                axis image
+                colorbar
+                colormap('Gray')
+                title(sprintf('Frame number %i', Frame));
             end
-        end
-        
-        if verbose
-            axes(h.MainAxes)
-            imagesc(im)
-            axis image
-            colorbar
-            colormap('Gray')
-            title(sprintf('Frame number %i', nframe));   
         end
     end
-end
-
-close(hwb)
-if verbose
-    set(h.sptPALM_DisplayMovie, 'Visible', 'off');
+    fprintf('\r')
 end
