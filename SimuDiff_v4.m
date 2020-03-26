@@ -386,6 +386,11 @@ title('Cumulative distribution of the step length')
 saveas(hPlot, 'Cumulative_distribution.png');
 close(hPlot)
 
+%% Save the list of all the positions in a txt file
+%% ================================================
+
+save('Detection_list.txt', 'DetectionList', '-ascii');
+
 %% Create the simulated movie
 %% ==========================
 
@@ -507,7 +512,7 @@ for nmovie = 1 : NMovies
                     else
                         imwrite(im, MovieName,'WriteMode','append')
                         ImRegistered = 1;
-                    end
+                    endAlexandre Martiniere <martinie@supagro.fr>, 
                     
                 catch exception
                     ImRegistered = 0;

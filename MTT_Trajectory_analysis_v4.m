@@ -133,10 +133,6 @@ h.Dapp = Dapp;
 %% Plot the distribution of apparent diffusion coefficient
 %% =======================================================
 
-axes(ax)
-hold off
-cla
-
 LogDapp = log10(Dapp);
 [NbrGaussianFit, D_mean, varargout] = FitGaussianDistribution_v2(LogDapp, MSD_all, FontSize, ax, round(MaxDisplayTime*1000/AcquisitionTime), Reconstructed_Traj_MSD_accepted, DiffCalculationMethod);
 MSD_FIT = varargout{1};

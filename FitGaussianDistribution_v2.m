@@ -17,6 +17,8 @@ hist_Bin = (hist_Edges(1:end-1) + hist_Edges(2:end)) / 2;
 hist_Bin = hist_Bin';
 
 axes(ax)
+hold off
+cla
 bar(hist_Bin,hist_Values)
 ax.FontSize = FontSize;
 axis square
@@ -94,6 +96,7 @@ if NbrGaussianFit == 2
     F = round(100*size(LogDapp_1,1)/(size(LogDapp_1,1)+size(LogDapp_2,1)));
     disp(strcat('The mobile fraction is equal to f=',num2str(F), '%'));
     
+    axes(ax)
     hist1 = histogram(LogDapp_1(:,1), hist_Edges, 'Visible', 'off');
     hist1_Values = hist1.Values;
     hist1_Values = hist1_Values'*100/Ntot;
@@ -132,6 +135,7 @@ else
     [fitobject,gof1] = fit(hist_Bin, hist_Values, Gaussian, 'start', [s0,X0,A0]);
     GaussianFit = Gaussian(fitobject.s, fitobject.x0, fitobject.A, hist_Bin);
     
+    axes(ax)
     hold on
     plot(hist_Bin, GaussianFit, '--k', 'LineWidth',1)
     disp(strcat('For the gaussian fit, R²=', num2str(100*gof1.rsquare), '%'))
