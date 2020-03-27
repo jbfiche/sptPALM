@@ -31,10 +31,14 @@ dirinfo = dir();
 dirinfo_ROI = dir(FileName);
 
 if ~isempty(dirinfo_ROI)
-    if isunix
-        FinalDirectories{end+1,1} = strcat(cd, '/', dirinfo_ROI.name);
-    else
-        FinalDirectories{end+1,1} = strcat(cd, '\', dirinfo_ROI.name);
+    
+    for n_files = 1 : size(dirinfo_ROI,1)
+        
+        if isunix
+            FinalDirectories{end+1,1} = strcat(dirinfo_ROI(n_files).folder, '/', dirinfo_ROI(n_files).name);
+        else
+            FinalDirectories{end+1,1} = strcat(dirinfo_ROI(n_files).folder, '\', dirinfo_ROI(n_files).name);
+        end
     end
 end
 
@@ -55,7 +59,7 @@ if length(dirinfo) > 2
         else
             Path = strcat(DirectoryName, '\', dirinfo(k).name);
         end
-        if isdir(Path)
+        if isfolder(Path)
             if isunix
                 AllDirectories{k-2} = strcat(DirectoryName, '/', dirinfo(k).name);
             else
@@ -79,7 +83,6 @@ while NFolder > 0
         for nSubFolder = 1 : size(Path, 1)
             if iscell(Path)
                 dirinfo = dir(Path{nSubFolder});
-                Path{nSubFolder};
             else
                 dirinfo = dir(Path);
             end
@@ -101,7 +104,7 @@ while NFolder > 0
                             NewPath = strcat(Path, '\', dirinfo(k).name);
                         end
                     end
-                    if isdir(NewPath)
+                    if isfolder(NewPath)
                         %                         AllSubDirectories{k-2} = strcat(NewPath);
                         AllSubDirectories{end+1,1} = strcat(NewPath);
                         NFolder = NFolder + 1;

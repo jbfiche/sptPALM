@@ -29,7 +29,7 @@ PanelBorder_bottom = 5;
 InterPanelDistance_Height = 10;
 InterPanelDistance_Width = 10;
 
-Total_lines = 24;
+Total_lines = 26;
 Total_Panels = 5;
 
 set(h.sptPALM_ControlPanel,'DefaultUicontrolFontSize',FontSize);
@@ -60,7 +60,7 @@ Panel_Line_Height = round( 1/Total_lines * (ControlPanel_Height - 2*Height_Borde
 
 % Define the Panel
 
-NLines_Panel_1 = 4;
+NLines_Panel_1 = 6;
 PanelWidth_1 = ControlPanel_Width - 2*Side_Border;
 PanelHeight_1 = PanelBorder_top + PanelBorder_bottom + round(NLines_Panel_1*Panel_Line_Height);
 
@@ -85,6 +85,8 @@ TextSize_2_long = [180, 15];
 EditSize_2 = [250, 25];
 CheckBoxSize = [15, 21];
 
+PopupmenuSize = [150, 45];
+
 PushButtonSize = [170, 35];
 EditSize_4 = [150, 35];
 
@@ -93,11 +95,13 @@ EditSize_4 = [150, 35];
 Width_Separation_Line1 = floor((PanelWidth_1 - 2*(TextSize_1(1) + EditSize_1(1)))/2);
 Width_Separation_Line2 = floor((PanelWidth_1 - EditSize_2(1) - ...
     TextSize_2_short(1) - TextSize_2_long(1) - CheckBoxSize(1))/3);
+Width_Separation_Line3 = floor((PanelWidth_1 - PopupmenuSize(1))/2);
 Width_Separation_Line4 = floor((PanelWidth_1 - 2*PushButtonSize(1) - EditSize_4(1))/3);
 
 Position_Height = [PanelHeight_1-PanelBorder_top-Panel_Line_Height, ...
     PanelHeight_1-PanelBorder_top-2*Panel_Line_Height, ...
-    PanelHeight_1-PanelBorder_top-3.7*Panel_Line_Height];
+    PanelHeight_1-PanelBorder_top-4*Panel_Line_Height, ...
+    PanelHeight_1-PanelBorder_top-5.5*Panel_Line_Height];
 
 % line 1
 
@@ -151,21 +155,27 @@ h.Save_traj_txt = uicontrol(h.Panel_LoadingTracks, 'Style', 'checkbox',...
 
 % line 3
 
+h.TrackingSoftware = uicontrol(h.Panel_LoadingTracks, 'Style', 'popupmenu',...
+    'String', {'MTT', 'TrackMate'}, 'FontWeight', 'bold', ...
+    'Position', [Width_Separation_Line3 Position_Height(3) PopupmenuSize]);
+
+% line 4
+
 Position_Width = [Width_Separation_Line4, ...
     Width_Separation_Line4 + EditSize_4(1), ...
     2*Width_Separation_Line4 + EditSize_4(1) + PushButtonSize(1)];
 
 h.MTT_FileName = uicontrol(h.Panel_LoadingTracks, 'Style', 'edit',...
-    'String', 'AC*.mat',...
-    'Position', [Position_Width(1) Position_Height(3) EditSize_4]);
+    'String', '*.mat', ...
+    'Position', [Position_Width(1) Position_Height(4) EditSize_4]);
 
 h.LoadMTT = uicontrol(h.Panel_LoadingTracks, 'Style', 'pushbutton',...
     'String', 'Load MTT files',...
-    'Position', [Position_Width(2) Position_Height(3) PushButtonSize], 'FontWeight', 'bold');
+    'Position', [Position_Width(2) Position_Height(4) PushButtonSize], 'FontWeight', 'bold');
 
 h.Load_Previous_analysis = uicontrol(h.Panel_LoadingTracks, 'Style', 'pushbutton',...
     'String', 'Load previous analysis',...
-    'Position', [Position_Width(3) Position_Height(3) PushButtonSize], 'FontWeight', 'bold');
+    'Position', [Position_Width(3) Position_Height(4) PushButtonSize], 'FontWeight', 'bold');
 
 %% Panel 2 : Define the parameters for the analysis
 %% =================================================
@@ -307,8 +317,8 @@ h.Panel_Action = uipanel(h.sptPALM_ControlPanel, 'Title', 'Diffusion analysis',.
 
 PushButtonSize = [150,27];
 PopupmenuSize = [150, 25];
-TextSize = [130, 15];
-CheckBoxSize = [15, 21];
+% TextSize = [130, 15];
+% CheckBoxSize = [15, 21];
 
 % Define the position of the objects in the Panel
 

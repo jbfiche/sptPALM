@@ -352,8 +352,7 @@ hold off
 cla
 
 Bin = min(LifeTime_all) : (max(LifeTime_all)-min(LifeTime_all))/50 : max(LifeTime_all);
-[Counts, Bin] = hist(LifeTime_all, Bin);
-plot(Bin, Counts/sum(Counts), '-ob')
+histogram(LifeTime_all, Bin, 'Normalization', 'probability');
 
 ax = gca;
 ax.FontSize = h.FontSize;
@@ -512,16 +511,15 @@ for nmovie = 1 : NMovies
                     else
                         imwrite(im, MovieName,'WriteMode','append')
                         ImRegistered = 1;
-                    endAlexandre Martiniere <martinie@supagro.fr>, 
+                    end
                     
-                catch exception
+                catch 
                     ImRegistered = 0;
                 end
             end
             
             if get(h.Simulation_Verbose, 'Value') == 1
                 axes(h.MainAxes)
-                cla
                 imagesc(im)
                 axis image
                 colorbar

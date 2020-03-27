@@ -8,10 +8,10 @@
 % Feb, 2020
 % fiche@cbs.cnrs.fr
 % -------------------------------------------------------------------------
-% Purpose: This function is reading all the selected mat files created by
-% MTT and creating a variable called "Reconstructed_Traj" where all the
+% Purpose: This function is reading all the selected mat output MTT files
+% and creating a variable called "Reconstructed_Traj" where all the
 % trajectories (even the single events) are saved. 
-% Also, if the "Save trajectories for Tesseler" is checked, two txt files
+% Also, if the "Save trajectories in txt files" is checked, two txt files
 % are created. One with the X,Y positions of ALL the events detected bt
 % MTT. The other with the mean X,Y positions of each trajectories. 
 % -------------------------------------------------------------------------
@@ -54,11 +54,9 @@ Localizations_all_average = [];
 Length_Traj = [];
 SingleStep_Length = [];
 
-hwaitbar = waitbar(0,strcat('Calculating the trajectories for file #1'));
-
 for Nfiles = 1 : numel(FileToAnalyse)
     
-    waitbar(Nfiles/numel(FileToAnalyse), hwaitbar, strcat('Calculating the trajectories for file #', num2str(Nfiles)));
+    fprintf('Calculating the trajectories for file #%i\n',Nfiles )
     
     clear('m', 'Traj', 'X', 'Y', 'Frame', 'Blink');
     m = matfile(FileToAnalyse{Nfiles}); % Load the results of the MTT analysis
@@ -237,8 +235,6 @@ for Nfiles = 1 : numel(FileToAnalyse)
     Localizations_all_average = cat(1, Localizations_all_average, Localizations_all_average_temp(Selected_Traj==1,:));
 end
 
-close(hwaitbar);
-
 h.SingleStep_Length = SingleStep_Length;
 h.Length_Traj = Length_Traj;
 h.Reconstructed_Traj = Reconstructed_Traj;
@@ -271,7 +267,6 @@ end
 
 axes(ax)
 hold off
-cla
 
 [f1,x1] = ecdf(SingleStep_Length);
 
@@ -330,7 +325,6 @@ saveas(ax, 'Cumulative_Distribution_LengthStep.png');
 
 axes(ax)
 hold off
-cla
 
 Length_Traj = sort(Length_Traj);
 Max99p = Length_Traj(round(length(Length_Traj)*0.99));

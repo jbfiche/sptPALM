@@ -58,14 +58,14 @@ switch PlotType
             
             NewLine = sprintf('log(D_%d) = %.2f um²/s', n, D_mean(1,n));
             if n>1
-                Title = strvcat(Title, NewLine);
+                Title = char(Title, NewLine);
             else
                 Title = NewLine;
             end
             
             if NbrGaussianFit>1 && n>1
                 NewLine = sprintf('Mobile fraction : %d%%', F);
-                Title = strvcat(Title, NewLine);
+                Title = char(Title, NewLine);
             end
         end
         title(Title);
@@ -80,7 +80,7 @@ switch PlotType
         
         MSD_FIT = h.MSD_FIT;
         D_mean = h.D_mean;
-        AcquisitionTime = str2num(get(h.AcquisitionTime, 'String'));
+        AcquisitionTime = str2double(get(h.AcquisitionTime, 'String'));
         FontSize = h.FontSize;
         
         Lag = 1 : 1 : size(MSD_FIT,1);
@@ -143,9 +143,7 @@ switch PlotType
         hPlot = figure;
         set(0,'Units','pixels'); %Define the type of units used later for the position (here in pixels)
         scnsize = get(0,'ScreenSize');%Get the size of the screen in pixels
-        set(hPlot,'OuterPosition',scnsize);%Display fig1 in order to completely fill the screen
-        ax = gca;
-        
+        set(hPlot,'OuterPosition',scnsize);%Display fig1 in order to completely fill the screen  
         
         Reconstructed_Traj_ROI = h.Reconstructed_Traj_ROI;
         NTraj_ROI = size(Reconstructed_Traj_ROI,1);
@@ -168,15 +166,12 @@ switch PlotType
         
         for ntraj = 1 : NTraj_ROI
             if isfield(h, 'AvIm')
-                PixelSize = str2num(get(h.PixelSize, 'String'));
+                PixelSize = str2double(get(h.PixelSize, 'String'));
                 X = Reconstructed_Traj_ROI{ntraj}(2,:)/PixelSize;
                 Y = Reconstructed_Traj_ROI{ntraj}(3,:)/PixelSize;
             else
                 X = Reconstructed_Traj_ROI{ntraj}(2,:);
                 Y = Reconstructed_Traj_ROI{ntraj}(3,:);
-                if ~isempty(find(X==0))
-                    ntraj
-                end
             end
             line(Y, X, 'Color', Color(ceil(ntraj/ntraj_color),:),'LineWidth',1)
         end
@@ -206,8 +201,6 @@ switch PlotType
         set(0,'Units','pixels'); %Define the type of units used later for the position (here in pixels)
         scnsize = get(0,'ScreenSize');%Get the size of the screen in pixels
         set(hPlot,'OuterPosition',scnsize);%Display fig1 in order to completely fill the screen
-        ax = gca;
-        
         
         if NbrGaussianFit == 1
             hwarn = warndlg('This kind of plot cannot be plotted for this analysis, only one population was fitted');
@@ -236,7 +229,7 @@ switch PlotType
         
         for ntraj = 1 : NTraj_Pop1
             if isfield(h, 'AvIm')
-                PixelSize = str2num(get(h.PixelSize, 'String'));
+                PixelSize = str2double(get(h.PixelSize, 'String'));
                 X = Reconstructed_Traj_DiffPop1{ntraj}(2,:)/PixelSize;
                 Y = Reconstructed_Traj_DiffPop1{ntraj}(3,:)/PixelSize;
             else

@@ -1,11 +1,16 @@
 function h = sptPALM_initialize(h, Action)
 
+global h_backup
+global h_backup_analysis
+
 switch Action
     
     case 'Reset_all'
         
         % Initialize all the callback to their default values and states
         % ---------------------------------------------------------------
+        
+        h = h_backup;
         
         set(h.FolderPath_Text, 'String', 'Directory name')
         
@@ -44,72 +49,66 @@ switch Action
         set(h.Edit_UpperContrast, 'String','0.01');
         set(h.Edit_LowerContrast, 'String','0');
         
-        if isfield(h, 'AvIm')
-            h = rmfield(h, 'AvIm');
-        end
-        
-        if isfield(h, 'ROI')
-            h = rmfield(h, 'ROI');
-        end
-        
     case 'Reset_h'
         
-        if isfield(h, 'Reconstructed_Traj_ROI')
-            h = rmfield(h, 'Reconstructed_Traj_ROI');
-        end
+        h = h_backup_analysis;
         
-        if isfield(h, 'Reconstructed_Traj_Filtered')
-            h = rmfield(h, 'Reconstructed_Traj_Filtered');
-        end
-        
-        if isfield(h, 'Reconstructed_Traj_MSD')
-            h = rmfield(h, 'Reconstructed_Traj_MSD');
-        end
-        
-        if isfield(h, 'Reconstructed_Traj_MSD_accepted')
-            h = rmfield(h, 'Reconstructed_Traj_MSD_accepted');
-        end
-        
-        if isfield(h, 'Dapp')
-            h = rmfield(h, 'Dapp');
-        end
-        
-        if isfield(h, 'Reconstructed_Traj_Diff')
-            h = rmfield(h, 'Reconstructed_Traj_Diff');
-        end
-        
-        if isfield(h, 'FittedDiffDistribution')
-            h = rmfield(h, 'FittedDiffDistribution');
-        end
-        
-        if isfield(h, 'DiffDistribution')
-            h = rmfield(h, 'DiffDistribution');
-        end
-        
-        if isfield(h, 'D_mean')
-            h = rmfield(h, 'D_mean');
-        end
-        
-        if isfield(h, 'MSD_FIT')
-            h = rmfield(h, 'MSD_FIT');
-        end
-        
-        if isfield(h, 'NbrLorentzianFit')
-            h = rmfield(h, 'NbrLorentzianFit');
-        end
-        
-        if isfield(h, 'Reconstructed_Traj_DiffPop1') && isfield(h, 'Reconstructed_Traj_DiffPop2')
-            h = rmfield(h, 'Reconstructed_Traj_DiffPop1');
-            h = rmfield(h, 'Reconstructed_Traj_DiffPop2');
-        end
-        
-        if isfield(h, 'Fraction')
-            h = rmfield(h, 'Fraction');
-        end
-        
-        if isfield(h, 'Density')
-            h = rmfield(h, 'Density');
-        end
+%         if isfield(h, 'Reconstructed_Traj_ROI')
+%             h = rmfield(h, 'Reconstructed_Traj_ROI');
+%         end
+%         
+%         if isfield(h, 'Reconstructed_Traj_Filtered')
+%             h = rmfield(h, 'Reconstructed_Traj_Filtered');
+%         end
+%         
+%         if isfield(h, 'Reconstructed_Traj_MSD')
+%             h = rmfield(h, 'Reconstructed_Traj_MSD');
+%         end
+%         
+%         if isfield(h, 'Reconstructed_Traj_MSD_accepted')
+%             h = rmfield(h, 'Reconstructed_Traj_MSD_accepted');
+%         end
+%         
+%         if isfield(h, 'Dapp')
+%             h = rmfield(h, 'Dapp');
+%         end
+%         
+%         if isfield(h, 'Reconstructed_Traj_Diff')
+%             h = rmfield(h, 'Reconstructed_Traj_Diff');
+%         end
+%         
+%         if isfield(h, 'FittedDiffDistribution')
+%             h = rmfield(h, 'FittedDiffDistribution');
+%         end
+%         
+%         if isfield(h, 'DiffDistribution')
+%             h = rmfield(h, 'DiffDistribution');
+%         end
+%         
+%         if isfield(h, 'D_mean')
+%             h = rmfield(h, 'D_mean');
+%         end
+%         
+%         if isfield(h, 'MSD_FIT')
+%             h = rmfield(h, 'MSD_FIT');
+%         end
+%         
+%         if isfield(h, 'NbrLorentzianFit')
+%             h = rmfield(h, 'NbrLorentzianFit');
+%         end
+%         
+%         if isfield(h, 'Reconstructed_Traj_DiffPop1') && isfield(h, 'Reconstructed_Traj_DiffPop2')
+%             h = rmfield(h, 'Reconstructed_Traj_DiffPop1');
+%             h = rmfield(h, 'Reconstructed_Traj_DiffPop2');
+%         end
+%         
+%         if isfield(h, 'Fraction')
+%             h = rmfield(h, 'Fraction');
+%         end
+%         
+%         if isfield(h, 'Density')
+%             h = rmfield(h, 'Density');
+%         end
          
     case 'LoadPreviousData'
         

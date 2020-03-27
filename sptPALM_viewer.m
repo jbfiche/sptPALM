@@ -39,7 +39,7 @@ MaxEditBox = 1;
 Side_Border = 15;
 Height_Border = 5;
 ControlPanel_Width = 600;
-ControlPanel_Height = 865;
+ControlPanel_Height = 900;
 DisplayMovie_Width = 720;
 DisplayMovie_Height = 750;
 Axis_Size = 600;
@@ -72,14 +72,6 @@ h.sptPALM_ControlPanel = figure('Visible','on',...
 % ------------------------
 
 h = sptPALM_components(h, Side_Border, Height_Border, ControlPanel_Width, ControlPanel_Height);
-
-% Reinitialize the values of all the callbacks and define several
-% parameters that will be used for the display or saving the results
-% ------------------------------------------------------------------
-
-h = sptPALM_initialize(h, 'Reset_all');
-h.FontSize = 10;
-h.ResultsFileName = 'MTT_sptPALM_analysis.mat';
 
 % Define the axis on the display figure
 % -------------------------------------
@@ -123,6 +115,7 @@ h.SimulationParameters = SimulationParameters;
 % -----------------
 
 set(h.Saving_file_name, 'callback', @UpdateSavingFileName);
+set(h.TrackingSoftware, 'callback', @SelectTrackingSoftware);
 set(h.LoadMTT, 'callback', @LoadMTT);
 set(h.Load_Previous_analysis, 'callback', @Load_Previous_analysis);
 set(h.MinTrajLength, 'callback', @CheckMinTrajSize);
@@ -143,19 +136,37 @@ set(h.Simulation_EmissionParameters,'callback', @Change_EmissionParameters);
 set(h.Simulation_AquisitionParameters,'callback', @Change_AquisitionParameters);
 set(h.LaunchSimulation,'callback', @LaunchSimulation);
 
-%% Load MTT files
-%% ==============
+% Define a copy of the handle h (called h_backup) in case we need to reset
+% the handle completely.
+% ---------------------
 
-    function LoadMTT(~,~)
-        clc
-        h = sptPALM_initialize(h, 'Reset_all');
-        h = sptPALM_initialize(h, 'Reset_h');
-        h.ResultsFileName = h.Saving_file_name.String;
-        
-        [h, Repeat_Analysis] = Load_MTT_Tracking_Files_v2(h);
-        
-        if isequal(Repeat_Analysis, 'Proceed')
-            h = ReconstructTraj_v6(h);
+h.FontSize = 10;
+h.ResultsFileName = 'MTT_sptPALM_analysis.mat';
+
+global h_backup
+global h_backup_analysis
+
+h_backup = h;
+
+
+%% Select the tracking software used for analyzing the raw data
+%% ============================================================
+
+    function SelectTrackingSoftware(~,~)
+
+        Soft = get(h.TrackingSoftware, 'Value');
+        switch Soft
+            case 1
+                set(h.MTT_FileName, 'String', '*.mat');
+                set(h.Saving_file_name, 'String', 'MTT_sptPALM_analysis.mat');
+                set(h.LoadMTT, 'String', 'Load MTT files');
+                set(h.LoadMTT, 'callback', @LoadMTT);
+                
+            case 2
+                set(h.MTT_FileName, 'String', '*.xml');
+                set(h.Saving_file_name, 'String', 'TrackMate_sptPALM_analysis.mat');
+                set(h.LoadMTT, 'String', 'Load TrackMate files');
+                set(h.LoadMTT, 'callback', @LoadTrackMate);
         end
     end
 
@@ -165,15 +176,52 @@ set(h.LaunchSimulation,'callback', @LaunchSimulation);
     function UpdateSavingFileName(~,~)
         h.ResultsFileName = h.Saving_file_name.String;
     end
+
+%% Load MTT files
+%% ==============
+
+    function LoadMTT(~,~)
+        
+        clc
+        h = sptPALM_initialize(h, 'Reset_all');
+        h.ResultsFileName = h.Saving_file_name.String;
+        
+        [h, Repeat_Analysis] = Load_MTT_Tracking_Files_v2(h);
+        
+        if isequal(Repeat_Analysis, 'Proceed')
+            clear_display_axis
+            h = ReconstructTraj_v6(h);
+            h_backup_analysis = h;
+        end
+    end
+
+%% Load TrackMate files
+%% ====================
+
+    function LoadTrackMate(~,~)
+        
+        clc
+        h = sptPALM_initialize(h, 'Reset_all');
+        h.ResultsFileName = h.Saving_file_name.String;
+        
+        [h, Repeat_Analysis] = Load_TrackMate_Tracking_Files_v0(h);
+        
+        if isequal(Repeat_Analysis, 'Proceed')
+            clear_display_axis
+            h = ReconstructTraj_TrackMate_v6(h);
+            h_backup_analysis = h;
+        end
+    end
         
 %% Load previous analysis
 %% ======================
 
     function Load_Previous_analysis(~,~)
+        
         clc
         clear_display_axis
         h = sptPALM_initialize(h, 'Reset_all');
-        h = sptPALM_initialize(h, 'Reset_h');
+        
         [FileName, PathName] = uigetfile('*.mat');
         
         if FileName ~= 0
@@ -248,6 +296,7 @@ set(h.LaunchSimulation,'callback', @LaunchSimulation);
     function LoadMovie(~,~)
         
         clc
+        clear_display_axis
         set(h.sptPALM_DisplayMovie, 'Visible', 'on');
         
         [ImageName, ImageDirectory] = uigetfile('*.tif');
@@ -553,6 +602,7 @@ set(h.LaunchSimulation,'callback', @LaunchSimulation);
 
     function LaunchSimulation(~,~)
        clc
+       clear_display_axis
        SimuDiff_v4(h)
     end
 
