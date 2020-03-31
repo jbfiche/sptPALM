@@ -1,6 +1,26 @@
+%*****************************
+%
+% ReconstructTraj_Display_v5.m
+%
+% ****************************
+%
+% JB Fiche
+% Feb, 2020
+% fiche@cbs.cnrs.fr
+% -------------------------------------------------------------------------
+% Purpose: Load the MTT data associated to a movie previously loaded 
+% in order to visualize the trajectories and the detection of single 
+% molecule events
+% -------------------------------------------------------------------------
+% Specific: 
+% -------------------------------------------------------------------------
+% To fix: 
+% -------------------------------------------------------------------------
+% Copyright Centre National de la Recherche Scientifique, 2020.
+
 function h = ReconstructTraj_Display_v5(FileToAnalyse, h)
 
-PixelSize = str2double(get(h.PixelSize, 'String')); % in �m
+PixelSize = str2double(get(h.PixelSize, 'String')); % in µm
 
 %% For each MTT file, the trajectories are analyzed and saved in "Reconstructed_Traj"
 %% ==================================================================================

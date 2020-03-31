@@ -50,8 +50,17 @@ switch Action
         set(h.Edit_LowerContrast, 'String','0');
         
     case 'Reset_h'
-        
-        h = h_backup_analysis;
+
+        if isfield(h, 'ROI') && isfield(h, 'AvIm')
+            ROI = h.ROI;
+            AvIm = h.AvIm;
+            
+            h = h_backup_analysis;
+            h.ROI = ROI;
+            h.AvIm = AvIm;
+        else
+            h = h_backup_analysis;
+        end
         
 %         if isfield(h, 'Reconstructed_Traj_ROI')
 %             h = rmfield(h, 'Reconstructed_Traj_ROI');
@@ -115,19 +124,22 @@ switch Action
         NFiles = dir(h.ResultsFileName);
         Results = load(NFiles(1).name);
         h.ResultsFileName = NFiles(1).name;
-
-%         if size(NFiles,1) == 1
-%             Results = load(NFiles(1).name);
-%             h.ResultsFileName = NFiles(1).name;
-%         elseif size(NFiles,1) > 1
-%             hwarn = warndlg('More than one file were found. Manually select the file you want to use:');
-%             uiwait(hwarn);
-%             [FileName,~,~] = uigetfile('*MTT_sptPALM_analysis*.mat');
-%             Results = load(FileName);
-%             h.ResultsFileName = FileName;
-%         end
-
         h.DirectoryName = cd;
+        
+        if isfield(Results, 'FileToAnalyse') && isfield(Results, 'DirectoryName')
+            set(h.NMovies, 'String', num2str(size(Results.FileToAnalyse,1)));
+            h.FileToAnalyse = Results.FileToAnalyse;
+            h.DirectoryName = Results.DirectoryName;
+        end
+        
+        if isfield(Results, 'Reconstructed_Traj')
+            set(h.NTrajectories, 'String', num2str(size(Results.Reconstructed_Traj,1)));
+            h.Reconstructed_Traj = Results.Reconstructed_Traj;
+            h.SingleStep_Length = Results.SingleStep_Length;
+            h.Length_Traj = Results.Length_Traj;
+        end
+        
+        h_backup_analysis = h;
         
         if isfield(Results, 'AcquisitionTime') && isfield(Results, 'PixelSize')
             set(h.AcquisitionTime, 'String', num2str(Results.AcquisitionTime));
@@ -146,19 +158,6 @@ switch Action
             set(h.MinimumNumberPointsMSD, 'String', num2str(Results.MinNPointMSD));
             set(h.NumberPointsMSDFit, 'String', num2str(Results.p));
             set(h.MaxDisplayTime, 'String', num2str(Results.MaxDisplayTime));
-        end
-        
-        if isfield(Results, 'FileToAnalyse') && isfield(Results, 'DirectoryName')
-            set(h.NMovies, 'String', num2str(size(Results.FileToAnalyse,1)));
-            h.FileToAnalyse = Results.FileToAnalyse;
-            h.DirectoryName = Results.DirectoryName;
-        end
-        
-        if isfield(Results, 'Reconstructed_Traj')
-            set(h.NTrajectories, 'String', num2str(size(Results.Reconstructed_Traj,1)));
-            h.Reconstructed_Traj = Results.Reconstructed_Traj;
-            h.SingleStep_Length = Results.SingleStep_Length;
-            h.Length_Traj = Results.Length_Traj;
         end
         
         if isfield(Results, 'Reconstructed_Traj_Filtered')

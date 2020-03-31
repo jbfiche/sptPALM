@@ -110,8 +110,8 @@ for i = 1 : nTracks
         
         detectionNode = detectionNodes.item(j-1);
         t = str2double(detectionNode.getAttribute('t'));
-        x = str2double(detectionNode.getAttribute('x'));
-        y = str2double(detectionNode.getAttribute('y'));
+        y = str2double(detectionNode.getAttribute('x'));
+        x = str2double(detectionNode.getAttribute('y'));
         %             z = str2double(detectionNode.getAttribute('z'));
         A(j, :) = [ t x y ];
         

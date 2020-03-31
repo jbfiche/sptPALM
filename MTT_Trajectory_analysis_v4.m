@@ -9,11 +9,11 @@
 % fiche@cbs.cnrs.fr
 % -------------------------------------------------------------------------
 % Purpose: This function is used to calculate the MSD and instant diffusion
-% coefficient of each trajectories. 
+% coefficient of each trajectories.
 % -------------------------------------------------------------------------
-% Specific: 
+% Specific:
 % -------------------------------------------------------------------------
-% To fix: 
+% To fix:
 % -------------------------------------------------------------------------
 % Copyright Centre National de la Recherche Scientifique, 2020.
 
@@ -37,13 +37,15 @@ FontSize = h.FontSize;
 DiffCalculationMethod = get(h.DiffusionCalculationMethod, 'Value');
 Reconstructed_Traj = h.Reconstructed_Traj;
 
+Plot_Traj = get(h.Plot_trajectories, 'Value');
+
 %% Make sure the display window is visible
 %% =======================================
 
 ax = h.MainAxes;
 set(h.sptPALM_DisplayMovie, 'Visible', 'on');
 
-%% Remove the results from the previous analysis from structure "h" and 
+%% Remove the results from the previous analysis from structure "h" and
 %% reinitialize the structure "Results"
 %% ====================================
 
@@ -206,58 +208,61 @@ end
 
 saveas(ax, 'MSD_Curves.png');
 
-%% The trajectories are plotted on a single graph
-%% ==============================================
+%% If the option was selected, the trajectories are plotted on a single graph
+%% ==========================================================================
 
-hPlot = figure;
-set(0,'Units','pixels'); %Define the type of units used later for the position (here in pixels)
-scnsize = get(0,'ScreenSize');%Get the size of the screen in pixels
-set(hPlot,'OuterPosition',scnsize);%Display fig1 in order to completely fill the screen
-
-if isfield(h, 'AvIm')
-    imagesc(h.AvIm)
-    colormap('gray')
-else
-    fig = gcf;
-    fig.Color = [0.6 0.6 0.6];
-end
-
-axis image
-axis off
-legend off
-title('')
-
-Color = jet;
-ntraj_color = ceil(NTraj_ROI/size(Color,1));
-
-for ntraj = 1 : NTraj_ROI
+if Plot_Traj
+    
+    hPlot = figure;
+    set(0,'Units','pixels'); %Define the type of units used later for the position (here in pixels)
+    scnsize = get(0,'ScreenSize');%Get the size of the screen in pixels
+    set(hPlot,'OuterPosition',scnsize);%Display fig1 in order to completely fill the screen
     
     if isfield(h, 'AvIm')
-        X = Reconstructed_Traj_ROI{ntraj}(2,:)/PixelSize;
-        Y = Reconstructed_Traj_ROI{ntraj}(3,:)/PixelSize;
+        imagesc(h.AvIm)
+        colormap('gray')
     else
-        X = Reconstructed_Traj_ROI{ntraj}(2,:);
-        Y = Reconstructed_Traj_ROI{ntraj}(3,:);
+        fig = gcf;
+        fig.Color = [0.6 0.6 0.6];
     end
-    line(Y, X, 'Color', Color(ceil(ntraj/ntraj_color),:),'LineWidth',1)
     
+    axis image
+    axis off
+    legend off
+    title('')
+    
+    Color = jet;
+    ntraj_color = ceil(NTraj_ROI/size(Color,1));
+    
+    for ntraj = 1 : NTraj_ROI
+        
+        if isfield(h, 'AvIm')
+            X = Reconstructed_Traj_ROI{ntraj}(2,:)/PixelSize;
+            Y = Reconstructed_Traj_ROI{ntraj}(3,:)/PixelSize;
+        else
+            X = Reconstructed_Traj_ROI{ntraj}(2,:);
+            Y = Reconstructed_Traj_ROI{ntraj}(3,:);
+        end
+        line(Y, X, 'Color', Color(ceil(ntraj/ntraj_color),:),'LineWidth',1)
+        
+    end
+    
+    if isfield(h, 'AvIm')
+        
+        ScaleBar = [5, 5, 1/PixelSize, 1];
+        rectangle('Position', ScaleBar, 'EdgeColor', [1 1 1], 'FaceColor', [1 1 1], 'LineWidth', 2)
+        
+    else
+        AxisLimits = axis;
+        Box = [AxisLimits(1), AxisLimits(3), AxisLimits(2)-AxisLimits(1), AxisLimits(4)-AxisLimits(3)];
+        rectangle('Position', Box, 'EdgeColor', [0 0 0], 'LineWidth', 2)
+        
+        ScaleBar = [AxisLimits(1)+1, AxisLimits(3)+1, 1, 0.1];
+        rectangle('Position', ScaleBar, 'EdgeColor', [1 1 1], 'FaceColor', [1 1 1], 'LineWidth', 2)
+    end
+    
+    saveas(hPlot, 'Trajectories.png');
 end
-
-if isfield(h, 'AvIm')
-    
-    ScaleBar = [5, 5, 1/PixelSize, 1];
-    rectangle('Position', ScaleBar, 'EdgeColor', [1 1 1], 'FaceColor', [1 1 1], 'LineWidth', 2)
-    
-else
-    AxisLimits = axis;
-    Box = [AxisLimits(1), AxisLimits(3), AxisLimits(2)-AxisLimits(1), AxisLimits(4)-AxisLimits(3)];
-    rectangle('Position', Box, 'EdgeColor', [0 0 0], 'LineWidth', 2)
-    
-    ScaleBar = [AxisLimits(1)+1, AxisLimits(3)+1, 1, 0.1];
-    rectangle('Position', ScaleBar, 'EdgeColor', [1 1 1], 'FaceColor', [1 1 1], 'LineWidth', 2)
-end
-
-saveas(hPlot, 'Trajectories.png');
 
 %% Save the parameters in the file called MTT_sptPALM_analysis.mat
 %% ===============================================================

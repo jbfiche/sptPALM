@@ -336,9 +336,23 @@ h_backup = h;
 
     function LoadTraj(~,~)
         
-        [MTTFileName, MTTFileDirectory] = uigetfile('*.mat');
-        FileToAnalyse = strcat(MTTFileDirectory, MTTFileName);
-        h = ReconstructTraj_Display_v5(FileToAnalyse, h);
+        Soft = get(h.TrackingSoftware, 'Value');
+        FileName_template = get(h.MTT_FileName, 'String');
+
+        switch Soft
+            case 1
+                
+                [MTTFileName, MTTFileDirectory] = uigetfile(FileName_template);
+                FileToAnalyse = strcat(MTTFileDirectory, MTTFileName);
+                h = ReconstructTraj_Display_v5(FileToAnalyse, h);
+                
+            case 2
+                
+                [TrackMateFileName, TrackMateFileDirectory] = uigetfile(FileName_template);
+                FileToAnalyse = strcat(TrackMateFileDirectory, TrackMateFileName);
+                h = ReconstructTraj_TrackMate_Display_v0(FileToAnalyse, h);
+        end
+
         PlotTrajectories_sptPALM_v1(h)
     end
 

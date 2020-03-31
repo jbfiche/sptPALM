@@ -7,18 +7,9 @@ function [h, Area, Reconstructed_Traj_ROI, NTraj] = Select_Trajectories_ROI(h, R
 %% saved in the structure called "Results"
 %% =======================================
 
-if ~isempty(dir('ROI.mat'))
-    load('ROI.mat')
-    Results.ROI = ROI;
-    h.ROI = ROI;
-    delete('ROI.mat')
-end
-
-if ~isempty(dir('Average_Image.mat'))
-    load('Average_Image.mat')
-    Results.AvIm = AvIm;
-    h.AvIm = AvIm;
-    delete('Average_Image.mat')
+if isfield(h, 'ROI') && isfield(h, 'AvIm')
+    ROI = h.ROI;
+    AvIm = h.AvIm;
 end
 
 %% When needed ROIs can be defined manually in order to
