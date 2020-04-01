@@ -71,7 +71,7 @@ for nfile = 1 : size(TrackMate,1)
     
     for ntraj = 1 : NTraj
         
-        fprintf('\b\b\b\b%03i%%', round(100*ntraj/ntraj))
+        fprintf('\b\b\b\b%03i%%', round(100*ntraj/NTraj))
         
         T = m{ntraj}(:,1) + Nframe*(nfile-1);
         X = PixelSize*m{ntraj}(:,2);

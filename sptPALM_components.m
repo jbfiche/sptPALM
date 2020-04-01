@@ -17,19 +17,46 @@
 % -------------------------------------------------------------------------
 % Copyright Centre National de la Recherche Scientifique, 2020.
 
-function h = sptPALM_components(h, Side_Border, Height_Border, ControlPanel_Width, ControlPanel_Height)
+function h = sptPALM_components(h, ScreenOption, Side_Border, Height_Border, ControlPanel_Width, ControlPanel_Height)
 
 %% General parameters
 %% ==================
 
-FontSize = 8;
+switch ScreenOption
+    case 'large'
+        FontSize = 8;
+        PanelBorder_top = 15;
+        PanelBorder_bottom = 5;
+        InterPanelDistance_Height = 10;
+        InterPanelDistance_Width = 10;
+        
+        Text_height = 15;
+        Edit_height = 20;
+        Edit_height_large = 30;
+        PushButton_height = 27;
+        PushButton_height_large = 30;
+        CheckBox_height = 20;
+        Slider_height = 20;
+        Popupmenu_height = 25;
+        
+    case 'small'
+        FontSize = 7;
+        PanelBorder_top = 15;
+        PanelBorder_bottom = 5;
+        InterPanelDistance_Height = 7;
+        InterPanelDistance_Width = 7;
+        
+        Text_height = 13;
+        Edit_height = 17;
+        Edit_height_large = 25;
+        PushButton_height = 17;
+        PushButton_height_large = 25;
+        CheckBox_height = 17;
+        Slider_height = 17;
+        Popupmenu_height = 20;
+end
 
-PanelBorder_top = 15;
-PanelBorder_bottom = 5;
-InterPanelDistance_Height = 10;
-InterPanelDistance_Width = 10;
-
-Total_lines = 26;
+Total_lines = 28;
 Total_Panels = 5;
 
 set(h.sptPALM_ControlPanel,'DefaultUicontrolFontSize',FontSize);
@@ -77,18 +104,18 @@ h.Panel_LoadingTracks = uipanel(h.sptPALM_ControlPanel, 'Title', 'Loading MTT da
 
 % Define the size of the objects that are in the Panel
 
-TextSize_1 = [130, 15];
-EditSize_1 = [45, 20];
+TextSize_1 = [130, Text_height];
+EditSize_1 = [45, Edit_height];
 
-TextSize_2_short = [100, 15];
-TextSize_2_long = [180, 15];
-EditSize_2 = [250, 25];
-CheckBoxSize = [15, 21];
+TextSize_2_short = [100, Text_height];
+TextSize_2_long = [180, Text_height];
+EditSize_2 = [250, Edit_height];
+CheckBoxSize = [15, CheckBox_height];
 
-PopupmenuSize = [150, 45];
+PopupmenuSize = [150, Popupmenu_height];
 
-PushButtonSize = [170, 35];
-EditSize_4 = [150, 35];
+PushButtonSize = [170, PushButton_height_large];
+EditSize_4 = [150, Edit_height_large];
 
 % Define the position of the objects in the Panel
 
@@ -200,8 +227,8 @@ h.Panel_Analysis_Parameters = uipanel(h.sptPALM_ControlPanel, 'Title', 'Analysis
 
 % Define the size of the objects that are in the Panel
 
-EditSize = [45, 20];
-TextSize = [300 15];
+EditSize = [45, Edit_height];
+TextSize = [300 Text_height];
 
 % Define the position of the objects in the Panel
 
@@ -315,19 +342,19 @@ h.Panel_Action = uipanel(h.sptPALM_ControlPanel, 'Title', 'Diffusion analysis',.
 
 % Define the size of the objects that are in the Panel
 
-PushButtonSize = [150,27];
-PopupmenuSize = [150, 25];
-TextSize = [130, 15];
-CheckBoxSize = [15, 21];
+PushButtonSize = [150,PushButton_height];
+PopupmenuSize = [150, Popupmenu_height];
+TextSize = [130, Text_height];
+CheckBoxSize = [15, CheckBox_height];
 
 % Define the position of the objects in the Panel
 
 Position_Width = round((PanelWidth_3-PushButtonSize(1))/2);
 Position_Width_checkbox = [ round((PanelWidth_3-TextSize(1)-CheckBoxSize(1))/2), ...
     round((PanelWidth_3-TextSize(1)-CheckBoxSize(1))/2) + CheckBoxSize(1)];
-Position_Height = [PanelHeight_3-PanelBorder_top-Panel_Line_Height, ...
-    PanelHeight_3-PanelBorder_top-2*Panel_Line_Height, ...
-    PanelHeight_3-PanelBorder_top-3*Panel_Line_Height, ...
+Position_Height = [PanelHeight_3-PanelBorder_top-1.5*Panel_Line_Height, ...
+    PanelHeight_3-PanelBorder_top-2.5*Panel_Line_Height, ...
+    PanelHeight_3-PanelBorder_top-3.5*Panel_Line_Height, ...
     PanelHeight_3-PanelBorder_top-4*Panel_Line_Height, ...
     PanelHeight_3-PanelBorder_top-5*Panel_Line_Height, ...
     PanelHeight_3-PanelBorder_top-6*Panel_Line_Height, ...
@@ -336,7 +363,7 @@ Position_Height = [PanelHeight_3-PanelBorder_top-Panel_Line_Height, ...
 % Position of all the objects
 
 h.AnalyseTrajectories = uicontrol(h.Panel_Action, 'Style', 'pushbutton',...
-    'String', 'Analyse trajectories',...
+    'String', 'Analyse trajectories','FontWeight', 'bold', ...
     'Position', [Position_Width Position_Height(1) PushButtonSize]);
 
 h.DiffusionCalculationMethod = uicontrol(h.Panel_Action, 'Style', 'popupmenu',...
@@ -388,8 +415,8 @@ h.Panel_Results = uipanel(h.sptPALM_ControlPanel, 'Title', 'Statistics',...
 
 % Define the size of the objects that are in the Panel
 
-EditSize = [45, 20];
-TextSize = [220 15];
+EditSize = [45, Edit_height];
+TextSize = [220 Text_height];
 
 % Define the position of the objects in the Panel
 
@@ -483,7 +510,7 @@ h.TrackDensity = uicontrol(h.Panel_Results, 'Style', 'edit',...
 
 % Define the Panel
 
-NLines_Panel_5 = 5;
+NLines_Panel_5 = 7;
 PanelWidth_5 = ControlPanel_Width - 2*Side_Border;
 PanelHeight_5 = PanelBorder_top + PanelBorder_bottom + round(NLines_Panel_5*Panel_Line_Height);
 
@@ -502,27 +529,31 @@ h.Panel_Visualization = uipanel(h.sptPALM_ControlPanel, 'Title', 'Visualization 
 
 % Define the size of the objects that are in the Panel
 
-EditSize = [45, 20];
-TextSize = [130 15];
-SliderSize = [280, 20];
-PushButtonSize = [120,27];
+EditSize = [45, Edit_height];
+EditSize_movie_name = [100, Edit_height];
+TextSize_long = [130 Text_height];
+TextSize_short = [70 Text_height];
+SliderSize = [280, Slider_height];
+PushButtonSize = [120,PushButton_height];
 
 % Define the position of the objects in the Panel
 
-Width_Separation = floor((PanelWidth_5 - SliderSize(1) - EditSize(1) - TextSize(1))/5);
+Width_Separation = floor((PanelWidth_5 - SliderSize(1) - EditSize(1) - TextSize_long(1))/5);
 
 Position_Height = [PanelHeight_5 - PanelBorder_top - Panel_Line_Height, ...
     PanelHeight_5 - PanelBorder_top - 2*Panel_Line_Height, ...
     PanelHeight_5 - PanelBorder_top - 3*Panel_Line_Height, ...
     PanelHeight_5 - PanelBorder_top - 4*Panel_Line_Height, ...
-    PanelHeight_5 - PanelBorder_top - 5*Panel_Line_Height];
+    PanelHeight_5 - PanelBorder_top - 5*Panel_Line_Height, ...
+    PanelHeight_5 - PanelBorder_top - 6*Panel_Line_Height, ...
+    PanelHeight_5 - PanelBorder_top - 7*Panel_Line_Height];
 
 % line1
 
 Position_Width = [Width_Separation, ...
     2*Width_Separation + PushButtonSize(1), ...
     3*Width_Separation + 2*PushButtonSize(1), ...
-    4*Width_Separation + TextSize(1) + 2*PushButtonSize(1)];
+    4*Width_Separation + TextSize_long(1) + 2*PushButtonSize(1)];
 
 h.LoadMovie = uicontrol(h.Panel_Visualization, 'Style', 'pushbutton',...
     'String', 'Load movie',...
@@ -535,7 +566,7 @@ h.LoadTraj = uicontrol(h.Panel_Visualization, 'Style', 'pushbutton',...
 uicontrol(h.Panel_Visualization,'Style','text',...
     'String','Minimum track length',...
     'HorizontalAlignment','right',...
-    'Position',[Position_Width(3) Position_Height(1) TextSize]);
+    'Position',[Position_Width(3) Position_Height(1) TextSize_long]);
 
 h.MinTrackLength = uicontrol(h.Panel_Visualization, 'Style', 'edit',...
     'String', '1',...
@@ -557,13 +588,13 @@ h.DeleteROI = uicontrol(h.Panel_Visualization, 'Style', 'pushbutton',...
 % line3
 
 Position_Width = [Width_Separation, ...
-    2*Width_Separation + TextSize(1), ...
-    3*Width_Separation + TextSize(1) + SliderSize(1)];
+    2*Width_Separation + TextSize_long(1), ...
+    3*Width_Separation + TextSize_long(1) + SliderSize(1)];
 
 uicontrol(h.Panel_Visualization,'Style','text',...
     'String','Select frame ',...
     'HorizontalAlignment','center',...
-    'Position',[Position_Width(1) Position_Height(3) TextSize]);
+    'Position',[Position_Width(1) Position_Height(3) TextSize_long]);
 
 h.Slider_SelectFrame = uicontrol(h.Panel_Visualization,'Style','slider',...
     'Min', 1, 'Max', 10, 'Value', 1,...
@@ -578,13 +609,13 @@ h.Edit_SelectFrame = uicontrol(h.Panel_Visualization, 'Style', 'edit',...
 % line4
 
 Position_Width = [Width_Separation, ...
-    2*Width_Separation + TextSize(1), ...
-    3*Width_Separation + TextSize(1) + SliderSize(1)];
+    2*Width_Separation + TextSize_long(1), ...
+    3*Width_Separation + TextSize_long(1) + SliderSize(1)];
 
 uicontrol(h.Panel_Visualization,'Style','text',...
     'String','Contrast (upper limit) ',...
     'HorizontalAlignment','center',...
-    'Position',[Position_Width(1) Position_Height(4) TextSize]);
+    'Position',[Position_Width(1) Position_Height(4) TextSize_long]);
 
 h.Slider_UpperContrast = uicontrol(h.Panel_Visualization,'Style','slider',...
     'Min', 1, 'Max', 10, 'Value', 1,...
@@ -599,13 +630,13 @@ h.Edit_UpperContrast = uicontrol(h.Panel_Visualization, 'Style', 'edit',...
 % line5
 
 Position_Width = [Width_Separation, ...
-    2*Width_Separation + TextSize(1), ...
-    3*Width_Separation + TextSize(1) + SliderSize(1)];
+    2*Width_Separation + TextSize_long(1), ...
+    3*Width_Separation + TextSize_long(1) + SliderSize(1)];
 
 uicontrol(h.Panel_Visualization,'Style','text',...
     'String','Contrast (lower limit) ',...
     'HorizontalAlignment','center',...
-    'Position',[Position_Width(1) Position_Height(5) TextSize]);
+    'Position',[Position_Width(1) Position_Height(5) TextSize_long]);
 
 h.Slider_LowerContrast = uicontrol(h.Panel_Visualization,'Style','slider',...
     'Min', 1, 'Max', 10, 'Value', 1,...
@@ -616,6 +647,49 @@ h.Slider_LowerContrast = uicontrol(h.Panel_Visualization,'Style','slider',...
 h.Edit_LowerContrast = uicontrol(h.Panel_Visualization, 'Style', 'edit',...
     'String', '1',...
     'Position', [Position_Width(3) Position_Height(5) EditSize]);
+
+% line7
+
+Width_Separation = floor((PanelWidth_5 - PushButtonSize(1) - 2*EditSize(1) - EditSize_movie_name(1) - 3*TextSize_short(1))/8);
+
+Position_Width = [Width_Separation, ...
+    2*Width_Separation + PushButtonSize(1), ...
+    3*Width_Separation + PushButtonSize(1) + TextSize_short(1), ...
+    4*Width_Separation + PushButtonSize(1) + TextSize_short(1) + EditSize(1), ...
+    5*Width_Separation + PushButtonSize(1) + 2*TextSize_short(1) + EditSize(1), ...
+    6*Width_Separation + PushButtonSize(1) + 2*TextSize_short(1) + 2*EditSize(1), ...
+    7*Width_Separation + PushButtonSize(1) + 3*TextSize_short(1) + 2*EditSize(1)];
+
+h.SaveMovie = uicontrol(h.Panel_Visualization, 'Style', 'pushbutton',...
+    'String', 'Save movie',...
+    'Position', [Position_Width(1) Position_Height(7) PushButtonSize]);
+
+uicontrol(h.Panel_Visualization,'Style','text',...
+    'String','First frame',...
+    'HorizontalAlignment','right',...
+    'Position',[Position_Width(2) Position_Height(7) TextSize_short]);
+
+h.FirstFrame = uicontrol(h.Panel_Visualization, 'Style', 'edit',...
+    'String', '',...
+    'Position', [Position_Width(3) Position_Height(7) EditSize]);
+
+uicontrol(h.Panel_Visualization,'Style','text',...
+    'String','Last frame',...
+    'HorizontalAlignment','right',...
+    'Position',[Position_Width(4) Position_Height(7) TextSize_short]);
+
+h.LastFrame = uicontrol(h.Panel_Visualization, 'Style', 'edit',...
+    'String', '',...
+    'Position', [Position_Width(5) Position_Height(7) EditSize]);
+
+uicontrol(h.Panel_Visualization,'Style','text',...
+    'String','Movie title',...
+    'HorizontalAlignment','right',...
+    'Position',[Position_Width(6) Position_Height(7) TextSize_short]);
+
+h.MovieName = uicontrol(h.Panel_Visualization, 'Style', 'edit',...
+    'String', 'TrajMovie.avi',...
+    'Position', [Position_Width(7) Position_Height(7) EditSize_movie_name]);
 
 
 %% Panel 6 : Simulations
@@ -643,11 +717,11 @@ h.Panel_Simulation = uipanel(h.sptPALM_ControlPanel, 'Title', 'Simulation of spt
 
 % Define the size of the objects that are in the Panel
 
-EditSize = [45, 20];
-PushButtonSize_small = [180,27];
-PushButtonSize_long = [250,27];
-CheckBoxSize = [15, 21];
-TextSize = [130 15];
+EditSize = [45, Edit_height];
+PushButtonSize_small = [180,PushButton_height];
+PushButtonSize_long = [250,PushButton_height];
+CheckBoxSize = [15, CheckBox_height];
+TextSize = [130 Text_height];
 
 % Define the position of the objects in the Panel
 

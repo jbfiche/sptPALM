@@ -52,7 +52,7 @@ if NbrGaussianFit == 2
     
     Gaussian2 = fittype( @(s1,x01,A1,s2,x02,A2,x) A1*exp(-((x - x01)/(2*s1)).^2) + A2*exp(-((x - x02)/(2*s2)).^2));
     [fitobject2,gof2] = fit(hist_Bin, hist_Values, Gaussian2, 'start', [s0,X0,A0,s1,X1,A1]);
-    disp(strcat('For the Gaussian fit, R²=', num2str(100*gof2.rsquare), '%'))
+    disp(strcat('For the Gaussian fit, R^2=', num2str(100*gof2.rsquare), '%'))
     
     % Find the intersection point between the two fits (estimation)
     % -------------------------------------------------------------
@@ -122,7 +122,7 @@ if NbrGaussianFit == 2
     ax.FontSize = FontSize;
     axis square
     box on
-    xlabel('Log of apparent diffusion coefficient (um²/s)')
+    xlabel('Log of apparent diffusion coefficient (um^2/s)')
     ylabel('Fraction of molecule (%)')
     
 else
@@ -138,7 +138,11 @@ else
     axes(ax)
     hold on
     plot(hist_Bin, GaussianFit, '--k', 'LineWidth',1)
-    disp(strcat('For the gaussian fit, R²=', num2str(100*gof1.rsquare), '%'))
+    if isunix
+        disp(strcat('For the gaussian fit, R^2=', num2str(100*gof1.rsquare), '%'))
+    else
+        disp(strcat('For the gaussian fit, R^2=', num2str(100*gof1.rsquare), '%'))
+    end
     
     MSD_all_1 = MSD_all( LogDapp(:,1)>fitobject.x0-3*abs(fitobject.s) & LogDapp(:,1)<fitobject.x0+3*abs(fitobject.s) );
     MSD = zeros(Lmax, 3);
@@ -154,7 +158,7 @@ end
 
 for n = 1 : NbrGaussianFit
     
-    NewLine = sprintf('log(D_%d) = %.2f um²/s', n, D_mean(1,n));
+    NewLine = sprintf('log(D_%d) = %.2f um^2/s', n, D_mean(1,n));
     if n>1
         Title = char(Title, NewLine);
     else

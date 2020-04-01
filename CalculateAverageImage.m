@@ -17,16 +17,16 @@ end
 AvIm = uint32(zeros(ImInfo(1).Height, ImInfo(1).Width));
 
 if NImages > 1
-    hwaitbar = waitbar(0, 'Calculating the average image ...');
+    fprintf('Calculating the average image ...     ')
     for nimage = 1 : Dn : NImages
-        waitbar(nimage/NImages);
+        fprintf('\b\b\b\b%03i%%', round(100*nimage/NImages))
         im = imread(ImageFullName, 'Index', nimage);
         im = uint32(im);
         
         AvIm = AvIm + im;
     end
     AvIm = uint16(round(AvIm/Ntotal));
-    close(hwaitbar);
+    fprintf('\r\n');
     
 else
     AvIm = imread(ImageFullName);

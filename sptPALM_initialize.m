@@ -42,6 +42,11 @@ switch Action
         set(h.Edit_LowerContrast, 'Enable', 'off');
         set(h.MinTrackLength, 'Enable', 'off');
         
+        set(h.SaveMovie, 'Enable', 'off');
+        set(h.FirstFrame, 'Enable', 'off');
+        set(h.LastFrame, 'Enable', 'off');
+        set(h.MovieName, 'Enable', 'off');
+        
         set(h.Slider_UpperContrast,'Min', 0, 'Max', 1, 'Value', 0.01,...
             'SliderStep', [1/2000, 1/2000]);
         set(h.Slider_LowerContrast,'Min', 0, 'Max', 1, 'Value', 0,...
@@ -130,6 +135,19 @@ switch Action
             set(h.NMovies, 'String', num2str(size(Results.FileToAnalyse,1)));
             h.FileToAnalyse = Results.FileToAnalyse;
             h.DirectoryName = Results.DirectoryName;
+            FileExtension = h.FileToAnalyse{1}(end-2:end);
+            switch FileExtension
+                case 'mat'
+                    set(h.MTT_FileName, 'String', '*.mat');
+                    set(h.LoadMTT, 'String', 'Load MTT files');
+                    set(h.LoadMTT, 'callback', @LoadMTT);
+                    set(h.TrackingSoftware, 'Value', 1);
+                case 'xml'
+                    set(h.MTT_FileName, 'String', '*.xml');
+                    set(h.LoadMTT, 'String', 'Load TrackMate files');
+                    set(h.LoadMTT, 'callback', @LoadTrackMate);
+                    set(h.TrackingSoftware, 'Value', 2);
+            end
         end
         
         if isfield(Results, 'Reconstructed_Traj')

@@ -29,8 +29,11 @@ clc
 defaultBackground = get(0,'defaultUicontrolBackgroundColor');
 scrsz = get(0,'ScreenSize');
 
-MinEditBox = 0;
-MaxEditBox = 1;
+if scrsz(4)<1000
+    ScreenOption = 'small';
+else
+    ScreenOption = 'large';
+end
 
 % Calculate the dimension of the GUI window according to the disposition of
 % the displayed windows.
@@ -38,15 +41,25 @@ MaxEditBox = 1;
 
 Side_Border = 15;
 Height_Border = 5;
-ControlPanel_Width = 600;
-ControlPanel_Height = 900;
-DisplayMovie_Width = 720;
-DisplayMovie_Height = 750;
-Axis_Size = 600;
+
+switch ScreenOption
+    case 'small'
+        ControlPanel_Width = 580;
+        ControlPanel_Height = 800;
+        DisplayMovie_Width = 680;
+        DisplayMovie_Height = 720;
+        Axis_Size = 550;
+    case 'large'
+        ControlPanel_Width = 600;
+        ControlPanel_Height = 950;
+        DisplayMovie_Width = 750;
+        DisplayMovie_Height = 750;
+        Axis_Size = 600;
+end
 
 h.sptPALM_DisplayMovie = figure('Visible','on',...
     'Units','pixels',...
-    'Position',[round(scrsz(3)/2)-350,round(scrsz(4)/2)-350,DisplayMovie_Width,DisplayMovie_Height],...
+    'Position',[1,1,DisplayMovie_Width,DisplayMovie_Height],...
     'MenuBar','none',...
     'Name','sptPALM_Display_Panel',...
     'NumberTitle','off',...
@@ -59,7 +72,7 @@ h.sptPALM_DisplayMovie = figure('Visible','on',...
 
 h.sptPALM_ControlPanel = figure('Visible','on',...
     'Units','pixels',...
-    'Position',[round(scrsz(3)/2)-250,round(scrsz(4)/2)-425,ControlPanel_Width,ControlPanel_Height],...
+    'Position',[1,1,ControlPanel_Width,ControlPanel_Height],...
     'MenuBar','none',...
     'Name','sptPALM_Control_Panel',...
     'NumberTitle','off',...
@@ -71,7 +84,7 @@ h.sptPALM_ControlPanel = figure('Visible','on',...
 % Construct the components
 % ------------------------
 
-h = sptPALM_components(h, Side_Border, Height_Border, ControlPanel_Width, ControlPanel_Height);
+h = sptPALM_components(h, ScreenOption, Side_Border, Height_Border, ControlPanel_Width, ControlPanel_Height);
 
 % Define the axis on the display figure
 % -------------------------------------
@@ -132,21 +145,23 @@ set(h.Slider_UpperContrast,'callback', @Slider_UpperContrast);
 set(h.Edit_UpperContrast,'callback', @Edit_UpperContrast);
 set(h.Slider_LowerContrast,'callback', @Slider_LowerContrast);
 set(h.Edit_LowerContrast,'callback', @Edit_LowerContrast);
+set(h.SaveMovie,'callback', @Save_Movie);
 set(h.Simulation_EmissionParameters,'callback', @Change_EmissionParameters);
 set(h.Simulation_AquisitionParameters,'callback', @Change_AquisitionParameters);
 set(h.LaunchSimulation,'callback', @LaunchSimulation);
 
 % Define a copy of the handle h (called h_backup) in case we need to reset
-% the handle completely.
-% ---------------------
+% the handle completely. Finally initialize the control panel.
+% ------------------------------------------------------------
 
 h.FontSize = 10;
 h.ResultsFileName = 'MTT_sptPALM_analysis.mat';
 
 global h_backup
 global h_backup_analysis
-
 h_backup = h;
+
+h = sptPALM_initialize(h, 'Reset_all');
 
 
 %% Select the tracking software used for analyzing the raw data
@@ -175,6 +190,8 @@ h_backup = h;
 
     function UpdateSavingFileName(~,~)
         h.ResultsFileName = h.Saving_file_name.String;
+        h_backup.ResultsFileName = h.Saving_file_name.String;
+        h_backup_analysis.ResultsFileName = h.Saving_file_name.String;
     end
 
 %% Load MTT files
@@ -328,7 +345,10 @@ h_backup = h;
         set(h.Edit_UpperContrast, 'Enable', 'on')
         set(h.Slider_LowerContrast, 'Enable', 'on')
         set(h.Edit_LowerContrast, 'Enable', 'on')
-        
+        set(h.SaveMovie, 'Enable', 'on');
+        set(h.FirstFrame, 'Enable', 'on');
+        set(h.LastFrame, 'Enable', 'on');
+        set(h.MovieName, 'Enable', 'on');
     end
 
 %% Load trajectories associated to the movie loaded
@@ -521,6 +541,15 @@ h_backup = h;
         if isfield(h, 'Reconstructed_Traj_MovieDisplay') && isfield(h, 'Frame_Traj_MovieDisplay')
             PlotTrajectories_sptPALM_v1(h)
         end
+    end
+
+%% Save the movie (as a avi file)
+%% ===============================
+
+    function Save_Movie(~,~)
+        
+        clc
+        SaveDisplayedMovie(h)
     end
 
 %% Change the parameters describing the emission properties of the emitters

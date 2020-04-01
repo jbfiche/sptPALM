@@ -167,9 +167,9 @@ if NbrGaussianFit == 2
     ax.FontSize = FontSize;
     box on
     xlabel('Time(s)')
-    ylabel('MSD (um²)')
+    ylabel('MSD (um^2)')
     
-    Title = sprintf('log(D_1) = %.2f um²/s -- log(D_2) = %.2f um²/s', D_mean(1,1), D_mean(1,2));
+    Title = sprintf('log(D_1) = %.2f um^2/s -- log(D_2) = %.2f um^2/s', D_mean(1,1), D_mean(1,2));
     title(Title);
     legend('D1 average', 'D2 average', 'D1 median', 'D2 median', 'Location', 'northwest');
     
@@ -196,7 +196,7 @@ else
     box on
     ax.FontSize = FontSize;
     xlabel('Time(s)')
-    ylabel('MSD (um²/s)')
+    ylabel('MSD (um^2/s)')
     legend('Mean values', 'Median values', 'Location', 'northwest')
     
     t = Lag*AcquisitionTime/1000;

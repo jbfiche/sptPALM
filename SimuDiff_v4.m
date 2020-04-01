@@ -47,8 +47,8 @@ Gain = h.SimulationParameters.Gain; % gain of the camera
 CCDsensitivity = h.SimulationParameters.CCDsensitivity; % CCD sensitivity (e/AD counts)
 ReadoutNoise = h.SimulationParameters.ReadoutNoise; % readout noise (e)
 
-Diff1 = str2double(get(h.Simulation_Diff1, 'String')); % um²/s
-Diff2 = str2double(get(h.Simulation_Diff2, 'String')); % um²/s
+Diff1 = str2double(get(h.Simulation_Diff1, 'String')); % um^2/s
+Diff2 = str2double(get(h.Simulation_Diff2, 'String')); % um^2/s
 PopulationRatio = str2double(get(h.Simulation_Fraction, 'String'))/100; % Define the ratio of population 1 with respect to overall population of proteins available
 NFrames = str2double(get(h.Simulation_NFrames, 'String'));
 
@@ -146,7 +146,6 @@ for nFrame = 1 : NFrames
                 Traj(dt,2)+x, ...
                 Traj(dt,3)+y, ...
                 abs(r)];
-            
         end
         
         % Using the values of ton, toff and the LifeTime, the ON/OFF
@@ -298,9 +297,9 @@ fileID = Simulated_Trajectory_analysis_v3(hPlot, ...
     PixelSize);
 
 fprintf(fileID, '\r\n');
-fprintf(fileID, '\r\n %s', 'Diffusion coefficient of population 1(um²/s)');
+fprintf(fileID, '\r\n %s', 'Diffusion coefficient of population 1(um^2/s)');
 fprintf(fileID, '\n\n\n %4.5f\n', Diff1);
-fprintf(fileID, '\r\n %s', 'Diffusion coefficient of population 2(um²/s)');
+fprintf(fileID, '\r\n %s', 'Diffusion coefficient of population 2(um^2/s)');
 fprintf(fileID, '\n\n\n %4.5f\n', Diff2);
 fprintf(fileID, '\r\n %s', 'Ratio of population 2 with respect to the overall number of proteins available');
 fprintf(fileID, '\n\n\n %4.5f\n', PopulationRatio);
