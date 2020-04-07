@@ -56,10 +56,12 @@ for nMSD = 1 : N_MSD
         % -------------------------------------
         
         if Nzeros == p && Nnan == 0
-            Dapp(nMSD) = sum(MSD.*Weight./Lag)/(4*sum(Weight));
-            Idx_MSD_accepted(nMSD) = 1;
+            %             Dapp(nMSD) = sum(MSD.*Weight./Lag)/(4*sum(Weight));
+            Dapp(nMSD) = 1/4 * (MSD(4)-MSD(1))/(Lag(4)-Lag(1));
+            if Dapp(nMSD)>0
+                Idx_MSD_accepted(nMSD) = 1;
+            end
         end
-        
     end
 end
 

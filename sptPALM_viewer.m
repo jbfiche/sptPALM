@@ -109,7 +109,7 @@ SimulationParameters.Toff1 = 0.3; % in s
 SimulationParameters.Toff2 = 4; % in s
 
 SimulationParameters.MaxBlink = 3; % in frames
-SimulationParameters.MinTrajLength = 5; %in frames
+SimulationParameters.MinTrajLength = 7; %in frames
 
 SimulationParameters.ImageSize = 252; % px
 SimulationParameters.PixelSize = 0.102; % in um

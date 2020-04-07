@@ -53,7 +53,8 @@ for ntraj = 1 : NTraj_ROI
         
         if nMSD > MinNPointMSD
             MSD(lag) = mean(D_all);
-            Weight(lag) = length(D_all);
+            % Weight(lag) = length(D_all);
+            Weight(lag) = 1/var(D_all); % From Saxton - 1997 Biophys. J. 
         else
             break
         end
