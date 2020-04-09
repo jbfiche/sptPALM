@@ -86,7 +86,7 @@ for nfile = 1 : size(TrackMate,1)
         
         Length_Traj(ntraj+SavedTracks) = (T(end)-T(1))*AcquisitionTime/1000;
         
-        SingleStep_Length = cat(1, SingleStep_Length, D*PixelSize);
+        SingleStep_Length = cat(1, SingleStep_Length, D);
         
         Localizations_all = cat(1, Localizations_all, cat(2, m{ntraj}, zeros(size(m{ntraj},1),1)));
         

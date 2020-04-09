@@ -136,16 +136,13 @@ for nFrame = 1 : NFrames
         
         for dt = 1 : LifeTime-1
             
-            r = random('Normal', 0, sqrt(4*Diff*AcquisitionTime));
-            theta = random('Uniform',0,2*pi);
-            
-            x = r*cos(theta);
-            y = r*sin(theta);
+            x = random('Normal', 0, sqrt(2*Diff*AcquisitionTime));
+            y = random('Normal', 0, sqrt(2*Diff*AcquisitionTime));
             
             Traj(dt+1,:) = [nFrame+dt, ...
                 Traj(dt,2)+x, ...
                 Traj(dt,3)+y, ...
-                abs(r)];
+                abs(sqrt(x^2+y^2))];
         end
         
         % Using the values of ton, toff and the LifeTime, the ON/OFF
@@ -344,8 +341,8 @@ fprintf(fileID, '\n\n\n %4.2f\n', Toff2);
 
 fclose(fileID);
 
-% Plot the distribution of trajectories length
-% --------------------------------------------
+% Plot the distribution of trajectories duration
+% ----------------------------------------------
 
 hold off
 cla
@@ -369,7 +366,7 @@ saveas(hPlot, 'Trajectories_Length.png');
 hold off
 cla
 
-[f1,x1] = ecdf(SingleStepLength*PixelSize);
+[f1,x1] = ecdf(SingleStepLength);
 plot(x1,f1, '-r', 'LineWidth', 1)
 
 ax = gca;
@@ -377,7 +374,7 @@ ax.FontSize = h.FontSize;
 axis square
 axis([0 max(x1) 0 1])
 box on
-xlabel('Step length (nm)')
+xlabel('Step length (um)')
 ylabel('Cumulative distribution')
 title('Cumulative distribution of the step length')
 
