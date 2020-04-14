@@ -1,6 +1,6 @@
 %*****************************
 %
-% SimuDiff_v4.m
+% SimuDiff_v5.m
 %
 % ****************************
 %
@@ -18,13 +18,14 @@
 % -------------------------------------------------------------------------
 % Copyright Centre National de la Recherche Scientifique, 2020.
 
-function SimuDiff_v4(h)
+function SimuDiff_v5(h)
 
 %% Definition of the parameters used for the simulation
 %% ====================================================
 
 PixelSize = h.SimulationParameters.PixelSize; % in um
 AcquisitionTime = h.SimulationParameters.AcquisitionTime; % in s
+ExposureTime = h.SimulationParameters.ExposureTime; % in s
 
 NProteinsTot_Init = h.SimulationParameters.NProteinsTot_Init; % Define the total pool of proteins that can be activated and imaged
 MeanPhotons = h.SimulationParameters.MeanPhotons; % Average number of incident photons
@@ -68,6 +69,62 @@ LifeTime_all = [];
 TrajLength = [];
 SingleStepLength = [];
 DetectionList = [];
+
+%% Check that the diffusion coefficient is not too high with respect to the acquisition time 
+%% and the pixel size
+%% ==================
+
+% Calculate the typical time Tpx to travel a distance equal to the
+% pixel size. If this value is ten times higher than
+% the exposure time, we can expect no deformation of the psf during
+% the exposure time. The characteristic time to evaluate the
+% trajectory would be the exposure time.
+% However, if Tpx is close of below the exposure time, it is
+% likely we will start to observe a deformation of the psf.
+% Therefore, the trajectory will be estimated using Tpx/5 as
+% characteric time.
+% -----------------
+
+High_diff = 0;
+Tpx1 = PixelSize^2/(4*Diff1);
+
+if Tpx1 > 5*ExposureTime
+    dt_step_1 = ExposureTime;
+    N_step_1 = 1;
+else
+    hwarn = warndlg('The diffusion coefficient #1 is high with respect to the values indicated for the exposure time and the pixel size. The calculation might take a while and the fluorescent spots could appear elongated ');
+    uiwait(hwarn)
+    delete(hwarn)
+    N_step_1 = round(5*ExposureTime/Tpx1);
+    dt_step_1 = ExposureTime/N_step_1;
+    High_diff = 1;
+end
+
+if ~isnan(Diff2)
+    
+    Tpx2 = PixelSize^2/(4*Diff2);
+    
+    if Tpx2 > 5*ExposureTime
+        dt_step_2 = ExposureTime;
+        N_step_2 = 1;
+    else
+        hwarn = warndlg('The diffusion coefficient #2 is high with respect to the values indicated for the exposure time and the pixel size. The calculation might take a while and the fluorescent spots could appear elongated ');
+        uiwait(hwarn)
+        delete(hwarn)
+        N_step_2 = round(5*ExposureTime/Tpx2);
+        dt_step_2 = ExposureTime/N_step_2;
+        High_diff = 1;
+    end
+end
+
+if High_diff
+    
+    Proceed = questdlg('Do you want to proceed with the calculation?', 'Proceed?', 'Yes', 'No', 'Yes');
+    switch Proceed
+        case 'No'
+            return
+    end
+end
 
 %% Define the folder where the results of the analysis and the movies will
 %% be saved
@@ -116,8 +173,12 @@ for nFrame = 1 : NFrames
         Pop = random('Binomial', 1, PopulationRatio);
         if Pop == 1
             Diff = Diff1;
+            dt_step = dt_step_1;
+            N_step = N_step_1;
         else
             Diff = Diff2;
+            dt_step = dt_step_2;
+            N_step = N_step_2;
         end
         
         % From it, it is possible to define all the positions of the
@@ -131,16 +192,55 @@ for nFrame = 1 : NFrames
         % -----------------------------------------------
         
         Traj = zeros(LifeTime,4);
-        Traj(1,:) = [nFrame, X*PixelSize, Y*PixelSize, 0];
+        Traj_exposure = zeros(N_step,4,LifeTime);
         
-        for dt = 1 : LifeTime-1
+        for dt = 1 : LifeTime
             
-            x = random('Normal', 0, sqrt(2*Diff*AcquisitionTime));
-            y = random('Normal', 0, sqrt(2*Diff*AcquisitionTime));
+            % Calculate the positions of the emitter during the exposure
+            % time according to the number of steps N_step
+            % --------------------------------------------
             
-            Traj(dt+1,:) = [nFrame+dt, ...
-                Traj(dt,2)+x, ...
-                Traj(dt,3)+y, ...
+            dr = random('Normal', 0, sqrt(2*Diff*dt_step), [N_step,2]);
+            
+            for n_step_expo = 1 : N_step
+                
+                if dt==1 && n_step_expo==1
+                    Traj_exposure(1,:,1) = [nFrame, X*PixelSize, Y*PixelSize, N_step];
+                elseif dt>1 && n_step_expo==1
+                    Traj_exposure(1,:,dt) = [nFrame+dt-1, ...
+                        Traj(dt-1,2)+dr(n_step_expo,1), ...
+                        Traj(dt-1,3)+dr(n_step_expo,2), ...
+                        N_step];
+                else
+                    Traj_exposure(n_step_expo,:,dt) = [nFrame+dt-1, ...
+                        Traj_exposure(n_step_expo-1,2,dt)+dr(n_step_expo,1), ...
+                        Traj_exposure(n_step_expo-1,3,dt)+dr(n_step_expo,2), ...
+                        N_step];
+                end
+            end
+            
+            % Calculate the last position of the emitter for a dt equal to
+            % the acquisition time (not necessarely equal to the exposure
+            % time)
+            % -----
+            
+            if AcquisitionTime > ExposureTime
+                
+                dt_lag = AcquisitionTime - ExposureTime;               
+                x = Traj_exposure(N_step,2,dt) + random('Normal', 0, sqrt(2*Diff*dt_lag));
+                y = Traj_exposure(N_step,3,dt) + random('Normal', 0, sqrt(2*Diff*dt_lag));
+            else
+                x = Traj_exposure(N_step,2,dt);
+                y = Traj_exposure(N_step,3,dt);
+            end
+            
+            % Define the array Traj that will be used for the theoretical
+            % calculations. 
+            % -------------
+            
+            Traj(dt,:) = [nFrame+dt-1, ...
+                x, ...
+                y, ...
                 abs(sqrt(x^2+y^2))];
         end
         
@@ -189,7 +289,14 @@ for nFrame = 1 : NFrames
         
         Traj = Traj(EmissionState==1,:);
         Traj = Traj(Traj(:,1)<=NFrames,:);
-        DetectionList = cat(1, DetectionList, Traj);
+        
+        Traj_exposure = Traj_exposure(:,:,EmissionState==1);
+        Traj_exposure = Traj_exposure(:,:,Traj_exposure(1,1,:)<=NFrames);
+    
+        Traj_exposure = permute(Traj_exposure, [1 3 2]);
+        [lx,ly,lz] = size(Traj_exposure);
+        Traj_exposure = reshape(Traj_exposure, [lx*ly,lz]);
+        DetectionList = cat(1, DetectionList, Traj_exposure);
         
         % According to the values of "MaxBlink" and "MinTrajLength", the
         % trajectory "Traj" is splitted into several sub-trajectories that
@@ -272,7 +379,7 @@ rectangle('Position', [1, 1, ImageSize, ImageSize])
 saveas(hPlot, 'Trajectories.png');
 
 %% Analyze the simulated trajectories using a modified version of the
-%% function written for sptPALM_viewer and plot the results
+%% function written for sptPALM_viewStampSizeer and plot the results
 %% ========================================================
 
 MaxDisplayTime = 0.5; % (s) The maximum display time for the MSD curve
@@ -455,11 +562,12 @@ for nmovie = 1 : NMovies
             % number of photons for each pixel
             % --------------------------------
             
-            EmittersList = DetectionList(DetectionList(:,1)==Frame, 2:3);
+            EmittersList = DetectionList(DetectionList(:,1)==Frame, 2:4);
             
             for nemitter = 1 : size(EmittersList,1)
                 x = EmittersList(nemitter,1);
                 y = EmittersList(nemitter,2);
+                N_exposure = EmittersList(nemitter,3);
                 
                 [X,Y] = meshgrid(x-GaussStampSize:1:x+GaussStampSize , y-GaussStampSize:1:y+GaussStampSize);
                 X = reshape(round(X), [StampSize,1]);
@@ -467,7 +575,7 @@ for nmovie = 1 : NMovies
                 Idx_within_im_border = find(X>0 & Y>0 & X<ImageSize & Y<ImageSize);
                 
                 if ~isempty(Idx_within_im_border)
-                    Photons = Gaussian_2D(random('Poisson', MeanPhotons), X(Idx_within_im_border), Y(Idx_within_im_border), x, y, LimitResolution/PixelSize);
+                    Photons = Gaussian_2D(random('Poisson', MeanPhotons/N_exposure), X(Idx_within_im_border), Y(Idx_within_im_border), x, y, LimitResolution/PixelSize);
                     LinearIdx = sub2ind([ImageSize,ImageSize], X(Idx_within_im_border), Y(Idx_within_im_border));
                     I_photon(LinearIdx) = I_photon(LinearIdx) + Photons;
                 end

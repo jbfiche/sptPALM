@@ -24,13 +24,15 @@ function h = MTT_Trajectory_analysis_v4(h)
 %% ==========================
 
 MaxBlinks = str2double(get(h.MaxBlinks, 'String')); % Maximum number of frames two successive detections can be separated of
-MinNPoint = str2double(get(h.MinNumberPoints, 'String')); % Minimum number of frames for each trajectory
+% MinNPoint = str2double(get(h.MinNumberPoints, 'String')); % Minimum number of frames for each trajectory
+MinNPoint = h.MinNumberPoints; % Minimum number of frames for each trajectory
 MinTrajLength_MSDCalculation = str2double(get(h.MinTrajLength, 'String')); % Minium number of frames for the trajectories used for the calculation of the MSD
 AcquisitionTime = str2double(get(h.AcquisitionTime, 'String')); % in ms
 PixelSize = str2double(get(h.PixelSize, 'String')); %  in um
 MaxDisplayTime = str2double(get(h.MaxDisplayTime, 'String')); % The MSD curve will be displayed only from zero to this value in s
 p = str2double(get(h.NumberPointsMSDFit, 'String')); % Use the first "p" points of the MSD to estimate the Dapp
-MinNPointMSD = str2double(get(h.MinimumNumberPointsMSD, 'String')); % Minimum number of points used to calculate each values of the MSD
+% MinNPointMSD = str2double(get(h.MinimumNumberPointsMSD, 'String')); % Minimum number of points used to calculate each values of the MSD
+MinNPointMSD = h.MinimumNumberPointsMSD; % Minimum number of points used to calculate each values of the MSD
 MaxStepLength = str2double(get(h.MaxStepLength, 'String')); % Minimum number of points used to calculate each values of the MSD
 
 FontSize = h.FontSize;
@@ -92,8 +94,9 @@ h.Reconstructed_Traj_ROI = Reconstructed_Traj_ROI;
 [MSD_all,MSD_weight,Reconstructed_Traj_MSD] = MSD_calculation(Reconstructed_Traj_ROI,NTraj_ROI,MinNPointMSD,p);
 
 NTraj_MSD = size(MSD_all,1);
-set(h.NTrajectoriesMSD, 'String', num2str(NTraj_MSD)); % Display the # of trajectories accepted for MSD calculation
 h.Reconstructed_Traj_MSD = Reconstructed_Traj_MSD;
+% set(h.NTrajectoriesMSD, 'String', num2str(NTraj_MSD)); % Display the # of trajectories accepted for MSD calculation
+
 
 %% Return the track density and display it on the GUI
 %% ==================================================

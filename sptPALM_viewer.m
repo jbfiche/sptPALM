@@ -97,6 +97,14 @@ Ly = Axis_Size/DisplayMovie_Height;
 h.MainAxes = axes('Parent', h.sptPALM_DisplayMovie, 'box', 'on', 'XTick', [], 'YTick', [], ...
     'Position', [Corner_x,Corner_y,Lx,Ly]);
 
+% Define default parameters for the MSD analysis (this parameters were
+% previously availabe on the GUI but for the sake of clarity, they were
+% removed and defined during software initialization).
+% ----------------------------------------------------
+
+h.MinNumberPoints = 0.75;
+h.MinimumNumberPointsMSD = 3;
+
 % Define the default parameters for the simulation
 % ------------------------------------------------
 
@@ -114,6 +122,7 @@ SimulationParameters.MinTrajLength = 7; %in frames
 SimulationParameters.ImageSize = 252; % px
 SimulationParameters.PixelSize = 0.102; % in um
 SimulationParameters.AcquisitionTime = 0.02; % in s
+SimulationParameters.ExposureTime = 0.02; % in s
 SimulationParameters.Gain = 200; % electronic gain of the camera
 SimulationParameters.Offset = 98; % intensity offset for the image
 SimulationParameters.QY = 0.9; % parameter lambda for the Poisson distribution describing the noise of the EMCCD camera
@@ -604,11 +613,12 @@ h = sptPALM_initialize(h, 'Reset_all');
         
         prompt = {'Size of the image in pixels (image is square by default)', ...
             'Pixel size(um)', ...
-            'Aquisition time (s)',...
+            'Aquisition time (s)', ...
+            'Exposure time (s)', ...
             'Electronic gain', ...
             'Intensity offset', ...
-            'Quantum yield',...
-            'CCD sensitivity (e/counts)',...
+            'Quantum yield', ...
+            'CCD sensitivity (e/counts)', ...
             'Readout noise (e)', ...
             'Enter the half size of the window where the intensity of a single emitter is plot (in px)', ...
             'Enter the diffraction limit (in um and defined as the standard deviation)'};
@@ -617,6 +627,7 @@ h = sptPALM_initialize(h, 'Reset_all');
         default_answer = {num2str(h.SimulationParameters.ImageSize), ...
             num2str(h.SimulationParameters.PixelSize), ...
             num2str(h.SimulationParameters.AcquisitionTime),...
+            num2str(h.SimulationParameters.ExposureTime),...
             num2str(h.SimulationParameters.Gain), ...
             num2str(h.SimulationParameters.Offset), ...
             num2str(h.SimulationParameters.QY), ...
@@ -630,13 +641,14 @@ h = sptPALM_initialize(h, 'Reset_all');
             h.SimulationParameters.ImageSize = str2double(NewAquisitionParameters{1}); % px
             h.SimulationParameters.PixelSize = str2double(NewAquisitionParameters{2}); % um
             h.SimulationParameters.AcquisitionTime = str2double(NewAquisitionParameters{3}); % s
-            h.SimulationParameters.Gain = str2double(NewAquisitionParameters{4}); % um
-            h.SimulationParameters.Offset = str2double(NewAquisitionParameters{5}); % intensity offset for the image
-            h.SimulationParameters.QY = str2double(NewAquisitionParameters{6}); % quantum yield of the detector
-            h.SimulationParameters.CCDsensitivity = str2double(NewAquisitionParameters{7}); % CCD sensitivity (conversion electrons to AD counts)
-            h.SimulationParameters.ReadoutNoise = str2double(NewAquisitionParameters{8}); % readout noise of the detector
-            h.SimulationParameters.GaussStampSize = str2double(NewAquisitionParameters{9}); % in um
-            h.SimulationParameters.LimitResolution = str2double(NewAquisitionParameters{10}); % Mean intensity of single emitters
+            h.SimulationParameters.ExposureTime = str2double(NewAquisitionParameters{4}); % s
+            h.SimulationParameters.Gain = str2double(NewAquisitionParameters{5}); % um
+            h.SimulationParameters.Offset = str2double(NewAquisitionParameters{6}); % intensity offset for the image
+            h.SimulationParameters.QY = str2double(NewAquisitionParameters{7}); % quantum yield of the detector
+            h.SimulationParameters.CCDsensitivity = str2double(NewAquisitionParameters{8}); % CCD sensitivity (conversion electrons to AD counts)
+            h.SimulationParameters.ReadoutNoise = str2double(NewAquisitionParameters{9}); % readout noise of the detector
+            h.SimulationParameters.GaussStampSize = str2double(NewAquisitionParameters{10}); % in um
+            h.SimulationParameters.LimitResolution = str2double(NewAquisitionParameters{11}); % Mean intensity of single emitters
         end
     end
 
@@ -646,7 +658,7 @@ h = sptPALM_initialize(h, 'Reset_all');
     function LaunchSimulation(~,~)
        clc
        clear_display_axis
-       SimuDiff_v4(h)
+       SimuDiff_v5(h)
     end
 
 %% Function controlling the closing of the display window

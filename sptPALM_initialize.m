@@ -29,7 +29,7 @@ switch Action
         set(h.NTrajectories, 'String','');
         set(h.NTrajectoriesFiltered, 'String','');
         set(h.NTrajectoriesROI, 'String','');
-        set(h.NTrajectoriesMSD, 'String','');
+%         set(h.NTrajectoriesMSD, 'String','');
         set(h.NTrajectoriesDiff, 'String','');
         set(h.TrackDensity, 'String','');
         
@@ -172,8 +172,10 @@ switch Action
             end
             set(h.MaxBlinks, 'String', num2str(Results.MaxBlinks));
             set(h.MinTrajLength, 'String', num2str(Results.MinTrajLength_MSDCalculation));
-            set(h.MinNumberPoints, 'String', num2str(Results.MinNPoint));
-            set(h.MinimumNumberPointsMSD, 'String', num2str(Results.MinNPointMSD));
+            % set(h.MinNumberPoints, 'String', num2str(Results.MinNPoint));
+            h.MinNumberPoints = Results.MinNPoint;
+            % set(h.MinimumNumberPointsMSD, 'String', num2str(Results.MinNPointMSD));
+            h.MinimumNumberPointsMSD = Results.MinNPointMSD;
             set(h.NumberPointsMSDFit, 'String', num2str(Results.p));
             set(h.MaxDisplayTime, 'String', num2str(Results.MaxDisplayTime));
         end
@@ -189,7 +191,7 @@ switch Action
         end
         
         if isfield(Results, 'Reconstructed_Traj_MSD')
-            set(h.NTrajectoriesMSD, 'String', num2str(size(Results.Reconstructed_Traj_MSD,1)));
+            % set(h.NTrajectoriesMSD, 'String', num2str(size(Results.Reconstructed_Traj_MSD,1)));
             h.Reconstructed_Traj_MSD = Results.Reconstructed_Traj_MSD;
         end
         
