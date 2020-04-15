@@ -113,10 +113,12 @@ if NbrGaussianFit == 2
     hold off
     cla
     
-    bar(hist_Bin, cat(2, hist1_Values, hist2_Values), 'stacked');   
+    b = bar(hist_Bin, cat(2, hist1_Values, hist2_Values), 'stacked');   
+    b(2).FaceColor = [0 0.4470 0.7410];
+    b(1).FaceColor = [0.8500 0.3250 0.0980];
     hold on
-    plot(BinFit, GaussianFit1, '-r', 'LineWidth',1)
-    plot(BinFit, GaussianFit2, '-b', 'LineWidth',1)
+    plot(BinFit, GaussianFit1, '-b', 'LineWidth',1)
+    plot(BinFit, GaussianFit2, '-r', 'LineWidth',1)
     plot(BinFit, GaussianFitAll, '--k', 'LineWidth',1)
     
     ax.FontSize = FontSize;
