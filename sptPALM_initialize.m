@@ -138,14 +138,8 @@ switch Action
             FileExtension = h.FileToAnalyse{1}(end-2:end);
             switch FileExtension
                 case 'mat'
-                    set(h.MTT_FileName, 'String', '*.mat');
-                    set(h.LoadMTT, 'String', 'Load MTT files');
-                    set(h.LoadMTT, 'callback', @LoadMTT);
                     set(h.TrackingSoftware, 'Value', 1);
                 case 'xml'
-                    set(h.MTT_FileName, 'String', '*.xml');
-                    set(h.LoadMTT, 'String', 'Load TrackMate files');
-                    set(h.LoadMTT, 'callback', @LoadTrackMate);
                     set(h.TrackingSoftware, 'Value', 2);
             end
         end

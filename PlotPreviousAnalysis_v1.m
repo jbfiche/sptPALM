@@ -1,4 +1,4 @@
-function sptPALM_CBS_PlotPreviousAnalysis_v1(h)
+function PlotPreviousAnalysis_v1(h)
 
 PlotType = get(h.DataTypePlot, 'Value');
 NbrGaussianFit = h.NbrGaussianFit;
@@ -42,8 +42,8 @@ switch PlotType
                 GaussianFitAll = FittedDiffDistribution(:,4);
                 
                 b = bar(Bin, cat(2, N1_norm, N2_norm), 'stacked');
-                b(2).FaceColor = [0 0.4470 0.7410];
-                b(1).FaceColor = [0.8500 0.3250 0.0980];
+                b(1).FaceColor = [0 0.4470 0.7410];
+                b(2).FaceColor = [0.8500 0.3250 0.0980];
                 hold on
                 plot(BinFit, GaussianFit1, '-b', 'LineWidth',1)
                 plot(BinFit, GaussianFit2, '-r', 'LineWidth',1)
@@ -53,12 +53,12 @@ switch PlotType
         ax.FontSize = h.FontSize;
         axis square
         box on
-        xlabel('Log of apparent diffusion coefficient (um^2/s)')
+        xlabel('Log_1_0(D_i_n_s_t)')
         ylabel('Fraction of molecule (%)')
         
         for n = 1 : NbrGaussianFit
             
-            NewLine = sprintf('log(D_%d) = %.2f um^2/s', n, D_mean(1,n));
+            NewLine = sprintf('log_1_0(D_%d) = %.2f -- D_%d = %.3f um^2/s', n, D_mean(1,n),n,10^(D_mean(1,n)));
             if n>1
                 Title = char(Title, NewLine);
             else
@@ -93,14 +93,15 @@ switch PlotType
             MSD_1 = MSD_FIT(:,1:3);
             MSD_2 = MSD_FIT(:,4:6);
             
-            errorbar(Lag*AcquisitionTime/1000, MSD_1(:,1), MSD_1(:,2), '-o', 'Color', [1 0.5 0])
-            hold on
-            errorbar(Lag*AcquisitionTime/1000, MSD_2(:,1), MSD_2(:,2), '-o', 'Color', [0 0.4 1])
+%             errorbar(Lag*AcquisitionTime/1000, MSD_1(:,1), MSD_1(:,2), '-o', 'Color', [1 0.5 0])
+%             hold on
+%             errorbar(Lag*AcquisitionTime/1000, MSD_2(:,1), MSD_2(:,2), '-o', 'Color', [0 0.4 1])
             %     [fitobject1,gof1] = fit(Lag(Idx(1:4))'*AcquisitionTime/1000, MSD_1(Idx(1:4),1), 'poly1');
             %     [fitobject2,gof2] = fit(Lag(Idx(1:4))'*AcquisitionTime/1000, MSD_2(Idx(1:4),1), 'poly1');
             
-            errorbar(Lag*AcquisitionTime/1000, MSD_1(:,3), MSD_1(:,2), '-s', 'Color', [1 0.5 0], 'LineWidth', 2)
-            errorbar(Lag*AcquisitionTime/1000, MSD_2(:,3), MSD_2(:,2), '-s', 'Color', [0 0.4 1], 'LineWidth', 2)
+            errorbar(Lag*AcquisitionTime/1000, MSD_1(:,3), MSD_1(:,2), '-s', 'Color', [0 0.4 1], 'LineWidth', 2)
+            hold on
+            errorbar(Lag*AcquisitionTime/1000, MSD_2(:,3), MSD_2(:,2), '-s', 'Color', [1 0.5 0], 'LineWidth', 2)
             %     [fitobject1,gof1] = fit(Lag(Idx(1:4))'*AcquisitionTime/1000, MSD_1(Idx(1:4),1), 'poly1');
             %     [fitobject2,gof2] = fit(Lag(Idx(1:4))'*AcquisitionTime/1000, MSD_2(Idx(1:4),1), 'poly1');
             
@@ -110,28 +111,30 @@ switch PlotType
             xlabel('Time(s)')
             ylabel('MSD (um^2)')
             
-            Title = sprintf('log(D_1) = %.2f um^2/s -- log(D_2) = %.2f um^2/s', D_mean(1,1), D_mean(1,2));
+            Title = sprintf('log_1_0(D_1) = %.2f -- log_1_0(D_2) = %.2f', D_mean(1,1), D_mean(1,2));
             title(Title);
-            legend('D1 average', 'D2 average', 'D1 median', 'D2 median', 'Location', 'northwest');
+            legend('D1 median', 'D2 median', 'Location', 'northwest');
             
         else
             
             MSD = MSD_FIT;
             
-            errorbar(Lag*AcquisitionTime/1000, MSD(:,1),  MSD(:,2), '-o', 'Color', [0 0.4 1])
-            hold on
+%             errorbar(Lag*AcquisitionTime/1000, MSD(:,1),  MSD(:,2), '-o', 'Color', [0 0.4 1])
+%             hold on
             errorbar(Lag*AcquisitionTime/1000, MSD(:,3),  MSD(:,2), '-s', 'Color', [0 0.4 1], 'LineWidth', 2)
-            [fitobject,~] = fit(Lag(1:4)'*AcquisitionTime/1000, MSD(1:4,1), 'poly1');
-            
-            Fit = fitobject.p1 * Lag'*AcquisitionTime/1000 + fitobject.p2;
-            plot(Lag*AcquisitionTime/1000, Fit, '-r')
+%             [fitobject,~] = fit(Lag(1:4)'*AcquisitionTime/1000, MSD(1:4,1), 'poly1');          
+%             Fit = fitobject.p1 * Lag'*AcquisitionTime/1000 + fitobject.p2;
+%             plot(Lag*AcquisitionTime/1000, Fit, '-r')
+
             axis square
             axis tight
             box on
             ax.FontSize = FontSize;
             xlabel('Time(s)')
             ylabel('MSD (um^2/s)')
-            legend('Mean values', 'Median values', 'Location', 'northwest')
+            legend('Median values', 'Location', 'northwest')
+            Title = sprintf('log_1_0(D) = %.2f', D_mean(1,1));
+            title(Title);
             
         end
         
@@ -238,7 +241,7 @@ switch PlotType
                 X = Reconstructed_Traj_DiffPop1{ntraj}(2,:);
                 Y = Reconstructed_Traj_DiffPop1{ntraj}(3,:);
             end
-            line(Y, X, 'Color', [1 0.7 0],'LineWidth',1)
+            line(Y, X, 'Color', [0 0.4 1],'LineWidth',1)
         end
         
         for ntraj = 1 : NTraj_Pop2
@@ -249,7 +252,7 @@ switch PlotType
                 X = Reconstructed_Traj_DiffPop2{ntraj}(2,:);
                 Y = Reconstructed_Traj_DiffPop2{ntraj}(3,:);
             end
-            line(Y, X, 'Color', [0 0.4 1],'LineWidth',1)
+            line(Y, X, 'Color', [1 0.7 0],'LineWidth',1)
         end
         
         if isfield(h, 'AvIm')

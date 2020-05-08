@@ -1,6 +1,6 @@
 %*****************************
 %
-% MTT_Trajectory_analysis_v4.m
+% Trajectory_analysis_v4.m
 %
 % ****************************
 %
@@ -18,7 +18,7 @@
 % Copyright Centre National de la Recherche Scientifique, 2020.
 
 
-function h = MTT_Trajectory_analysis_v4(h)
+function h = Trajectory_analysis_v4(h)
 
 %% Parameter for the analysis
 %% ==========================
@@ -51,6 +51,7 @@ set(h.sptPALM_DisplayMovie, 'Visible', 'on');
 %% reinitialize the structure "Results"
 %% ====================================
 
+fprintf('Cleaning up previous analysis data ...     \n')
 h = sptPALM_initialize(h, 'Reset_h');
 
 if ~isempty(dir(h.ResultsFileName))
@@ -138,8 +139,12 @@ h.Dapp = Dapp;
 %% Plot the distribution of apparent diffusion coefficient
 %% =======================================================
 
+% The variable varargout contains the msd values. Depending on whether there
+% is a single population or two, the size of this variable will change.
+% ---------------------------------------------------------------------
+
 LogDapp = log10(Dapp);
-[NbrGaussianFit, D_mean, varargout] = FitGaussianDistribution_v2(LogDapp, MSD_all, FontSize, ax, round(MaxDisplayTime*1000/AcquisitionTime), Reconstructed_Traj_MSD_accepted, DiffCalculationMethod);
+[NbrGaussianFit, D_mean, varargout] = FitGaussianDistribution_v3(LogDapp, MSD_all, FontSize, ax, round(MaxDisplayTime*1000/AcquisitionTime), Reconstructed_Traj_MSD_accepted, DiffCalculationMethod);
 MSD_FIT = varargout{1};
 
 T = cat(2, LogDapp(:,1), Dapp(:,1));
@@ -161,10 +166,10 @@ if NbrGaussianFit == 2
     MSD_2 = MSD_FIT(:,4:6);
     
     hold on
-    errorbar(Lag*AcquisitionTime/1000, MSD_1(:,1), MSD_1(:,2), '-o', 'Color', [1 0.5 0])
-    errorbar(Lag*AcquisitionTime/1000, MSD_2(:,1), MSD_2(:,2), '-o', 'Color', [0 0.4 1])
-    errorbar(Lag*AcquisitionTime/1000, MSD_1(:,3), MSD_1(:,2), '-s', 'Color', [1 0.5 0], 'LineWidth', 2)
-    errorbar(Lag*AcquisitionTime/1000, MSD_2(:,3), MSD_2(:,2), '-s', 'Color', [0 0.4 1], 'LineWidth', 2)
+    %     errorbar(Lag*AcquisitionTime/1000, MSD_1(:,1), MSD_1(:,2), '-o', 'Color', [1 0.5 0]) % Plot mean of MSD for population #1
+    %     errorbar(Lag*AcquisitionTime/1000, MSD_2(:,1), MSD_2(:,2), '-o', 'Color', [0 0.4 1]) % Plot mean of MSD for population #2
+    errorbar(Lag*AcquisitionTime/1000, MSD_1(:,3), MSD_1(:,2), '-s', 'Color', [0 0.4 1], 'LineWidth', 2) % Plot median of MSD for population #1
+    errorbar(Lag*AcquisitionTime/1000, MSD_2(:,3), MSD_2(:,2), '-s', 'Color', [1 0.5 0], 'LineWidth', 2) % Plot median of MSD for population #2
     
     axis square
     ax.FontSize = FontSize;
@@ -172,9 +177,9 @@ if NbrGaussianFit == 2
     xlabel('Time(s)')
     ylabel('MSD (um^2)')
     
-    Title = sprintf('log(D_1) = %.2f um^2/s -- log(D_2) = %.2f um^2/s', D_mean(1,1), D_mean(1,2));
+    Title = sprintf('log_1_0(D_1) = %.2f -- log_1_0(D_2) = %.2f', D_mean(1,1), D_mean(1,2));
     title(Title);
-    legend('D1 average', 'D2 average', 'D1 median', 'D2 median', 'Location', 'northwest');
+    legend('MSD_1 median', 'MSD_2 median', 'Location', 'northwest');
     
     t = Lag*AcquisitionTime/1000;
     T = cat(2,t', MSD_1(:,1), MSD_1(:,3), MSD_1(:,2),...
@@ -187,20 +192,22 @@ else
     
     MSD = MSD_FIT;
     
-    errorbar(Lag*AcquisitionTime/1000, MSD(:,1),  MSD(:,2), '-o', 'Color', [0 0.4 1])
-    hold on
-    errorbar(Lag*AcquisitionTime/1000, MSD(:,3),  MSD(:,2), '-s', 'Color', [0 0.4 1], 'LineWidth', 2)
-    [fitobject,~] = fit(Lag(1:4)'*AcquisitionTime/1000, MSD(1:4,1), 'poly1');
+    %     errorbar(Lag*AcquisitionTime/1000, MSD(:,1),  MSD(:,2), '-o', 'Color', [0 0.4 1])
+    %     hold on
+    errorbar(Lag*AcquisitionTime/1000, MSD(:,3),  MSD(:,2), '-s', 'Color', [0 0.4 1], 'LineWidth', 2) % Plot of the MSD median
+    %     [fitobject,~] = fit(Lag(1:4)'*AcquisitionTime/1000, MSD(1:4,1), 'poly1');
+    %     Fit = fitobject.p1 * Lag'*AcquisitionTime/1000 + fitobject.p2;
+    %     plot(Lag*AcquisitionTime/1000, Fit, '-r')
     
-    Fit = fitobject.p1 * Lag'*AcquisitionTime/1000 + fitobject.p2;
-    plot(Lag*AcquisitionTime/1000, Fit, '-r')
     axis square
     axis tight
     box on
-    ax.FontSize = FontSize;
     xlabel('Time(s)')
     ylabel('MSD (um^2/s)')
-    legend('Mean values', 'Median values', 'Location', 'northwest')
+    Title = sprintf('log_1_0(D) = %.2f', D_mean(1,1));
+    title(Title);
+    legend('Median values', 'Location', 'northwest')
+    ax.FontSize = FontSize;
     
     t = Lag*AcquisitionTime/1000;
     T = cat(2,t', MSD(:,1), MSD(:,3), MSD(:,2));
@@ -330,48 +337,55 @@ else
     fileID = fopen(strcat(h.DirectoryName, '\', 'Parameters_analysis.txt'),'w');
 end
 
-fprintf(fileID, 'The following parameters are only the one used for the MATLAB analysis');
-fprintf(fileID, '\r\n');
-fprintf(fileID, '\r\n');
+if fileID ~= -1
+    fprintf(fileID, 'The following parameters are only the one used for the MATLAB analysis');
+    fprintf(fileID, '\r\n');
+    fprintf(fileID, '\r\n');
+    
+    fprintf(fileID, '\r\n %s', 'Maximum number of blinks');
+    fprintf(fileID, '\n\n\n %4.2f\n', MaxBlinks);
+    fprintf(fileID, '\r\n %s', 'Minimum length trajectory');
+    fprintf(fileID, '\n\n\n %4.2f\n', MinNPoint);
+    fprintf(fileID, '\r\n %s', 'Minimum length trajectory for the MSD calculation');
+    fprintf(fileID, '\n\n\n %4.2f\n', MinTrajLength_MSDCalculation);
+    fprintf(fileID, '\r\n %s', 'Maximum display time for the MSD');
+    fprintf(fileID, '\n\n\n %4.2f\n', MaxDisplayTime);
+    fprintf(fileID, '\r\n %s', 'Number of points used to calculate the apparent D');
+    fprintf(fileID, '\n\n\n %4.2f\n', p);
+    fprintf(fileID, '\r\n %s', 'Minimum number of distance values used to calculate each point on the MSD curve');
+    fprintf(fileID, '\n\n\n %4.2f\n', MinNPointMSD);
+    fprintf(fileID, '\r\n %s', 'Maximum accepted distance separating two consecutive detections');
+    fprintf(fileID, '\n\n\n %4.2f\n', MaxStepLength);
+    
+    fprintf(fileID, '\r\n');
+    fprintf(fileID, '\r\n %s', 'Number of movies analyzed ');
+    fprintf(fileID, '\n\n\n %s\n', get(h.NMovies, 'String'));
+    fprintf(fileID, '\r\n %s', 'Acquisition time (ms)');
+    fprintf(fileID, '\n\n\n %4.2f\n', AcquisitionTime);
+    fprintf(fileID, '\r\n %s', 'Pixel size (um)');
+    fprintf(fileID, '\n\n\n %4.2f\n', PixelSize);
+    
+    fprintf(fileID, '\r\n');
+    fprintf(fileID, '\r\n %s', 'Initial number of trajectories ');
+    fprintf(fileID, '\n\n\n %4.2f\n', size(Reconstructed_Traj,1));
+    fprintf(fileID, '\r\n %s', 'Number of trajectories after filtering for the blinking and duration');
+    fprintf(fileID, '\n\n\n %4.2f\n', NTraj_Filter);
+    fprintf(fileID, '\r\n %s', 'Number of trajectories after ROI selection');
+    fprintf(fileID, '\n\n\n %4.2f\n', NTraj_ROI);
+    fprintf(fileID, '\r\n %s', 'Number of trajectories validated for MSD calculation');
+    fprintf(fileID, '\n\n\n %4.2f\n', NTraj_MSD);
+    fprintf(fileID, '\r\n %s', 'Number of trajectories validated for the Dapp calculation');
+    fprintf(fileID, '\n\n\n %4.2f\n', NTraj_Diff);
+    fprintf(fileID, '\r\n %s', 'Density of tracks detected (/um²)');
+    fprintf(fileID, '\n\n\n %4.2f\n', Density);
+    fclose(fileID);
+else
+    Message = sprintf('The file Parameters_analysis.txt could not be saved. Check the permission are properly set for the directory %s',...
+        h.DirectoryName);
+    hwarn = warndlg(Message);
+    uiwait(hwarn)
+end
 
-fprintf(fileID, '\r\n %s', 'Maximum number of blinks');
-fprintf(fileID, '\n\n\n %4.2f\n', MaxBlinks);
-fprintf(fileID, '\r\n %s', 'Minimum length trajectory');
-fprintf(fileID, '\n\n\n %4.2f\n', MinNPoint);
-fprintf(fileID, '\r\n %s', 'Minimum length trajectory for the MSD calculation');
-fprintf(fileID, '\n\n\n %4.2f\n', MinTrajLength_MSDCalculation);
-fprintf(fileID, '\r\n %s', 'Maximum display time for the MSD');
-fprintf(fileID, '\n\n\n %4.2f\n', MaxDisplayTime);
-fprintf(fileID, '\r\n %s', 'Number of points used to calculate the apparent D');
-fprintf(fileID, '\n\n\n %4.2f\n', p);
-fprintf(fileID, '\r\n %s', 'Minimum number of distance values used to calculate each point on the MSD curve');
-fprintf(fileID, '\n\n\n %4.2f\n', MinNPointMSD);
-fprintf(fileID, '\r\n %s', 'Maximum accepted distance separating two consecutive detections');
-fprintf(fileID, '\n\n\n %4.2f\n', MaxStepLength);
-
-fprintf(fileID, '\r\n');
-fprintf(fileID, '\r\n %s', 'Number of movies analyzed ');
-fprintf(fileID, '\n\n\n %s\n', get(h.NMovies, 'String'));
-fprintf(fileID, '\r\n %s', 'Acquisition time (ms)');
-fprintf(fileID, '\n\n\n %4.2f\n', AcquisitionTime);
-fprintf(fileID, '\r\n %s', 'Pixel size (um)');
-fprintf(fileID, '\n\n\n %4.2f\n', PixelSize);
-
-fprintf(fileID, '\r\n');
-fprintf(fileID, '\r\n %s', 'Initial number of trajectories ');
-fprintf(fileID, '\n\n\n %4.2f\n', size(Reconstructed_Traj,1));
-fprintf(fileID, '\r\n %s', 'Number of trajectories after filtering for the blinking and duration');
-fprintf(fileID, '\n\n\n %4.2f\n', NTraj_Filter);
-fprintf(fileID, '\r\n %s', 'Number of trajectories after ROI selection');
-fprintf(fileID, '\n\n\n %4.2f\n', NTraj_ROI);
-fprintf(fileID, '\r\n %s', 'Number of trajectories validated for MSD calculation');
-fprintf(fileID, '\n\n\n %4.2f\n', NTraj_MSD);
-fprintf(fileID, '\r\n %s', 'Number of trajectories validated for the Dapp calculation');
-fprintf(fileID, '\n\n\n %4.2f\n', NTraj_Diff);
-fprintf(fileID, '\r\n %s', 'Density of tracks detected (/um²)');
-fprintf(fileID, '\n\n\n %4.2f\n', Density);
-
-fclose(fileID);
 set(h.SaveForTesseler, 'Enable', 'on')
 set(h.PlotPreviousAnalysis, 'Enable', 'on')
 set(h.DataTypePlot, 'Enable', 'on')

@@ -5,7 +5,7 @@
 % ****************************
 %
 % JB Fiche
-% Feb, 2020
+% Feb, 2015
 % fiche@cbs.cnrs.fr
 % -------------------------------------------------------------------------
 % Purpose: Analyze tracking data obtained from MTT software (Serge et al.
@@ -204,8 +204,8 @@ h = sptPALM_initialize(h, 'Reset_all');
         h_backup_analysis.ResultsFileName = h.Saving_file_name.String;
     end
 
-%% Load MTT files
-%% ==============
+%% Load MTT tracking files
+%% ===================
 
     function LoadMTT(~,~)
         
@@ -214,6 +214,7 @@ h = sptPALM_initialize(h, 'Reset_all');
         h.ResultsFileName = h.Saving_file_name.String;
         
         [h, Repeat_Analysis] = Load_MTT_Tracking_Files_v2(h);
+        SelectTrackingSoftware
         
         if isequal(Repeat_Analysis, 'Proceed')
             clear_display_axis
@@ -293,7 +294,7 @@ h = sptPALM_initialize(h, 'Reset_all');
     function AnalyseTrajectories(~,~)
         clc
         clear_display_axis
-        h = MTT_Trajectory_analysis_v4(h);
+        h = Trajectory_analysis_v4(h);
     end
 
 %% Save the analysis for the Tesseler clustering analysis
@@ -314,7 +315,7 @@ h = sptPALM_initialize(h, 'Reset_all');
     function PlotPreviousAnalysis(~,~)
         clc
         clear_display_axis
-        sptPALM_CBS_PlotPreviousAnalysis_v1(h)
+        PlotPreviousAnalysis_v1(h)
     end
 
 %% Load movie
