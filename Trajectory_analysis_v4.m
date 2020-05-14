@@ -80,7 +80,13 @@ h.Reconstructed_Traj_Filtered = Reconstructed_Traj_Filtered;
 
 [h, Area, Reconstructed_Traj_ROI, NTraj_ROI] = Select_Trajectories_ROI(h, Results, ax, Reconstructed_Traj_Filtered, PixelSize);
 set(h.NTrajectoriesROI, 'String', num2str(NTraj_ROI));  % Display the # of trajectories detected within the ROI
+
 h.Reconstructed_Traj_ROI = Reconstructed_Traj_ROI;
+
+if ~isnan(Area)
+    Results.ROI = h.ROI;
+    Results.AvIm = h.AvIm;
+end
 
 %% Analyze the trajectories and calculate the MSD for each trajectory
 %% (added as the fifth row)

@@ -10,7 +10,7 @@
 % -------------------------------------------------------------------------
 % Purpose: Analyze tracking data obtained from MTT software (Serge et al.
 % 2008, Nat. Methods) or TrackMate (Tinevez et al. 2018, Methods). 
-% The program can be used to sort the track, calculate the MSD and 
+% The program can be used to sort the tracks, calculate the MSD and 
 % diffusion coefficients Dinst, plot the trajectories and the
 % distribution of Dinst. Data can also be simulated. 
 % -------------------------------------------------------------------------
