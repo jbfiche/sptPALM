@@ -1,3 +1,24 @@
+%*****************************
+%
+% SaveDisplayedMovie.m
+%
+% ****************************
+%
+% JB Fiche
+% Mar, 2020
+% fiche@cbs.cnrs.fr
+% -------------------------------------------------------------------------
+% Purpose: This option was suggested by C.Royer and first implemented in 
+% her lab. The code was modified and adapted to the latest version of 
+% sptPALM_viewer. It allows the user to save the currently displayed movie 
+% (with or without ROI) as an .avi movie. 
+% -------------------------------------------------------------------------
+% Specific: 
+% -------------------------------------------------------------------------
+% To fix: 
+% -------------------------------------------------------------------------
+% Copyright Centre National de la Recherche Scientifique, 2020.
+
 function SaveDisplayedMovie(h)
 
 % Read the values of the first and last frames
@@ -25,7 +46,7 @@ MovieName = get(h.MovieName, 'String');
 % was defined.
 % ------------
 
-v = VideoWriter(MovieName);
+v = VideoWriter(MovieName, 'Uncompressed AVI');
 open(v);
 
 for nframe = FirstFrame : 1 : LastFrame

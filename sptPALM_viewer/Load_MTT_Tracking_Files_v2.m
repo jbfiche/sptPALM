@@ -74,9 +74,10 @@ switch Launch_Analysis
         for Nfiles = numel(FileToAnalyse) : -1 : 1
             waitbar((numel(FileToAnalyse)-Nfiles)/numel(FileToAnalyse));
             m = matfile(FileToAnalyse{Nfiles}); % Load the results of the MTT analysis
-            try
-                size(m.Xmatrix, 1);
-            catch
+            variables = whos(m);
+            first_variable = variables(1).name;
+
+            if ~isequal(first_variable, 'Xmatrix')
                 FileToAnalyse(Nfiles) = [];
             end
         end

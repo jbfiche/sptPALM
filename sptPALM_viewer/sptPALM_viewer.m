@@ -103,8 +103,8 @@ h.MainAxes = axes('Parent', h.sptPALM_DisplayMovie, 'box', 'on', 'XTick', [], 'Y
 % removed and defined during software initialization).
 % ----------------------------------------------------
 
-h.MinNumberPoints = 0.75;
-h.MinimumNumberPointsMSD = 3;
+h.MinNumberPoints = 0.75; % Minimum percentage of points to consider a trajectory complete
+h.MinimumNumberPointsMSD = 3; % Minimum number of points needed to calculate a MSD value
 
 % Define the default parameters for the simulation
 % ------------------------------------------------
@@ -261,6 +261,8 @@ h = sptPALM_initialize(h, 'Reset_all');
             set(h.PlotPreviousAnalysis, 'Enable', 'on')
             h = sptPALM_initialize(h, 'LoadPreviousData');
             
+            SelectTrackingSoftware
+            
             set(h.AnalyseTrajectories, 'Enable', 'on')
             set(h.DiffusionCalculationMethod, 'Enable', 'on')
             
@@ -302,11 +304,7 @@ h = sptPALM_initialize(h, 'Reset_all');
 
     function SaveForTesseler(~,~)
         clc
-        if h.Parallel_computing.Value == 0
-            h = Save_For_Tesseler_sptPALM(h);
-        else
-            h = Save_For_Tesseler_sptPALM_parallel_computing(h);
-        end
+        h = Save_For_Tesseler_sptPALM(h);
     end
 
 %% Plot the previous analysis
@@ -336,7 +334,7 @@ h = sptPALM_initialize(h, 'Reset_all');
         set(h.Slider_SelectFrame, 'Min', 1)
         set(h.Slider_SelectFrame, 'Max', h.MovieDisplayNImages)
         set(h.Slider_SelectFrame, 'Value', 1)
-        set(h.Slider_SelectFrame, 'SliderStep', [1/h.MovieDisplayNImages,10/h.MovieDisplayNImages])
+        set(h.Slider_SelectFrame, 'SliderStep', [1/h.MovieDisplayNImages,1/h.MovieDisplayNImages])
         set(h.Edit_SelectFrame, 'String', '1')
         
         ChangeContrast_sptPALM_v2(h)
@@ -397,7 +395,7 @@ h = sptPALM_initialize(h, 'Reset_all');
         
         ChangeContrast_sptPALM_v2(h);
         
-        if isfield(h, 'MovieDisplayReconstructed_Traj') && isfield(h, 'MovieDisplayFrame_Traj')
+        if isfield(h, 'Reconstructed_Traj_MovieDisplay') && isfield(h, 'Frame_Traj_MovieDisplay')
             PlotTrajectories_sptPALM_v1(h)
         end
     end
@@ -414,7 +412,7 @@ h = sptPALM_initialize(h, 'Reset_all');
         
         ChangeContrast_sptPALM_v2(h);
         
-        if isfield(h, 'MovieDisplayReconstructed_Traj') && isfield(h, 'MovieDisplayFrame_Traj')
+        if isfield(h, 'Reconstructed_Traj_MovieDisplay') && isfield(h, 'Frame_Traj_MovieDisplay')
             PlotTrajectories_sptPALM_v1(h)
         end
     end
@@ -442,8 +440,15 @@ h = sptPALM_initialize(h, 'Reset_all');
         
         clc       
         N = round(str2double(get(h.Edit_SelectFrame, 'String')));
+        if N<=0
+            N = 1;
+            set(h.Edit_SelectFrame, 'String', num2str(N));
+        elseif N>h.MovieDisplayNImages
+            N = h.MovieDisplayNImages;
+            set(h.Edit_SelectFrame, 'String', num2str(N));
+        end
+
         set(h.Slider_SelectFrame, 'Value', N);
-        
         ChangeContrast_sptPALM_v2(h);
         
         if isfield(h, 'Reconstructed_Traj_MovieDisplay') && isfield(h, 'Frame_Traj_MovieDisplay')
@@ -460,16 +465,12 @@ h = sptPALM_initialize(h, 'Reset_all');
         Up = get(h.Slider_UpperContrast, 'Value');
         Low = get(h.Slider_LowerContrast, 'Value');
         
-        if Up<Low
+        if Up<=Low
             Up = Low+0.001;
-            set(h.Slider_UpperContrast, 'Value', num2str(Up))
-        elseif Up>MaxEditBox
-            Up = MaxEditBox;
-            set(h.Slider_UpperContrast, 'Value', num2str(Up))
+            set(h.Slider_UpperContrast, 'Value', Up)
         end
         
         set(h.Edit_UpperContrast, 'String', num2str(Up))
-        
         ChangeContrast_sptPALM_v2(h);
         
         if isfield(h, 'Reconstructed_Traj_MovieDisplay') && isfield(h, 'Frame_Traj_MovieDisplay')
@@ -489,12 +490,12 @@ h = sptPALM_initialize(h, 'Reset_all');
         if Up<Low
             Up = Low+0.001;
             set(h.Edit_UpperContrast, 'String', num2str(Up))
-        elseif Up>MaxEditBox
-            Up = MaxEditBox;
+        elseif Up>1
+            Up = 1;
             set(h.Edit_UpperContrast, 'String', num2str(Up))
         end
-        set(h.Slider_UpperContrast, 'Value', Up)
         
+        set(h.Slider_UpperContrast, 'Value', Up)
         ChangeContrast_sptPALM_v2(h);
         
         if isfield(h, 'Reconstructed_Traj_MovieDisplay') && isfield(h, 'Frame_Traj_MovieDisplay')
@@ -511,12 +512,9 @@ h = sptPALM_initialize(h, 'Reset_all');
         Up = get(h.Slider_UpperContrast, 'Value');
         Low = get(h.Slider_LowerContrast, 'Value');
         
-        if Low<MinEditBox
-            Low = MinEditBox;
-            set(h.Slider_LowerContrast, 'Value', num2str(Low))
-        elseif Low>Up
+        if Low>Up
             Low = Up-0.001;
-            set(h.Slider_LowerContrast, 'Value', num2str(Low))
+            set(h.Slider_LowerContrast, 'Value', Low)
         end
         
         set(h.Edit_LowerContrast, 'String', num2str(Low))
@@ -537,16 +535,15 @@ h = sptPALM_initialize(h, 'Reset_all');
         Up = get(h.Slider_UpperContrast, 'Value');
         Low = str2double(get(h.Edit_LowerContrast, 'String'));
         
-        if Low<MinEditBox
-            Low = MinEditBox;
-            set(h.Edit_LowerContrast, 'String', num2str(Low))
-        elseif Low>Up
+        if Low>Up
             Low = Up-0.001;
+            set(h.Edit_LowerContrast, 'String', num2str(Low))
+        elseif Low<0
+            Low = 0;
             set(h.Edit_LowerContrast, 'String', num2str(Low))
         end
         
         set(h.Slider_LowerContrast, 'Value', Low)
-        
         ChangeContrast_sptPALM_v2(h);
         
         if isfield(h, 'Reconstructed_Traj_MovieDisplay') && isfield(h, 'Frame_Traj_MovieDisplay')

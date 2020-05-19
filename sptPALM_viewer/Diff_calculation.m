@@ -35,9 +35,10 @@ for nMSD = 1 : N_MSD
             %                 hold on
             %                 plot(Lag', MSD_all(nMSD, 1 : Minp+(p-1))', 'o')
             %                 plot(0, 0, 'o')
-            
             [fitobject,~] = fit(Lag', MSD', 'Poly1', 'Weights', Weight', 'Upper', [Inf, min(MSD)]);
+            
             if fitobject.p1>0
+
                 Dapp(nMSD) = fitobject.p1/4; % Return the coefficient of diffusion
                 %                     Dapp(end,2) = fitobject.p2; % Return the dynamic localization uncertainty (4 s^2)
                 %                     D(end+1,1) = fitobject.p1; % Return the coefficient of diffusion

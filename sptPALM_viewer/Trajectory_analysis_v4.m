@@ -344,46 +344,29 @@ else
 end
 
 if fileID ~= -1
-    fprintf(fileID, 'The following parameters are only the one used for the MATLAB analysis');
+    fprintf(fileID, 'The following parameters are only the one used for the sptPALM_ viewer analysis');
     fprintf(fileID, '\r\n');
     fprintf(fileID, '\r\n');
     
-    fprintf(fileID, '\r\n %s', 'Maximum number of blinks');
-    fprintf(fileID, '\n\n\n %4.2f\n', MaxBlinks);
-    fprintf(fileID, '\r\n %s', 'Minimum length trajectory');
-    fprintf(fileID, '\n\n\n %4.2f\n', MinNPoint);
-    fprintf(fileID, '\r\n %s', 'Minimum length trajectory for the MSD calculation');
-    fprintf(fileID, '\n\n\n %4.2f\n', MinTrajLength_MSDCalculation);
-    fprintf(fileID, '\r\n %s', 'Maximum display time for the MSD');
-    fprintf(fileID, '\n\n\n %4.2f\n', MaxDisplayTime);
-    fprintf(fileID, '\r\n %s', 'Number of points used to calculate the apparent D');
-    fprintf(fileID, '\n\n\n %4.2f\n', p);
-    fprintf(fileID, '\r\n %s', 'Minimum number of distance values used to calculate each point on the MSD curve');
-    fprintf(fileID, '\n\n\n %4.2f\n', MinNPointMSD);
-    fprintf(fileID, '\r\n %s', 'Maximum accepted distance separating two consecutive detections');
-    fprintf(fileID, '\n\n\n %4.2f\n', MaxStepLength);
+    fprintf(fileID, '\r\n Maximum number of blinks : %4.2f \n', MaxBlinks);
+    fprintf(fileID, '\r\n Minimum length trajectory (frame) : %4.2f\n', MinTrajLength_MSDCalculation);
+    fprintf(fileID, '\r\n Maximum display time for the MSD (s) : %4.2f\n', MaxDisplayTime);
+    fprintf(fileID, '\r\n Number of points used to calculate the apparent D : %4.2f\n', p);
+    fprintf(fileID, '\r\n Maximum accepted distance separating two consecutive detections : %4.2f\n', MaxStepLength);
     
     fprintf(fileID, '\r\n');
-    fprintf(fileID, '\r\n %s', 'Number of movies analyzed ');
-    fprintf(fileID, '\n\n\n %s\n', get(h.NMovies, 'String'));
-    fprintf(fileID, '\r\n %s', 'Acquisition time (ms)');
-    fprintf(fileID, '\n\n\n %4.2f\n', AcquisitionTime);
-    fprintf(fileID, '\r\n %s', 'Pixel size (um)');
-    fprintf(fileID, '\n\n\n %4.2f\n', PixelSize);
-    
+    fprintf(fileID, '\r\n Number of movies analyzed : %s\n', get(h.NMovies, 'String'));
+    fprintf(fileID, '\r\n Acquisition time (ms) : %4.2f\n', AcquisitionTime);
+    fprintf(fileID, '\r\n Pixel size (nm) : %4.2f\n', PixelSize*1000);
+
     fprintf(fileID, '\r\n');
-    fprintf(fileID, '\r\n %s', 'Initial number of trajectories ');
-    fprintf(fileID, '\n\n\n %4.2f\n', size(Reconstructed_Traj,1));
-    fprintf(fileID, '\r\n %s', 'Number of trajectories after filtering for the blinking and duration');
-    fprintf(fileID, '\n\n\n %4.2f\n', NTraj_Filter);
-    fprintf(fileID, '\r\n %s', 'Number of trajectories after ROI selection');
-    fprintf(fileID, '\n\n\n %4.2f\n', NTraj_ROI);
-    fprintf(fileID, '\r\n %s', 'Number of trajectories validated for MSD calculation');
-    fprintf(fileID, '\n\n\n %4.2f\n', NTraj_MSD);
-    fprintf(fileID, '\r\n %s', 'Number of trajectories validated for the Dapp calculation');
-    fprintf(fileID, '\n\n\n %4.2f\n', NTraj_Diff);
-    fprintf(fileID, '\r\n %s', 'Density of tracks detected (/um²)');
-    fprintf(fileID, '\n\n\n %4.2f\n', Density);
+    fprintf(fileID, '\r\n Initial number of trajectories : %4.2f\n', size(Reconstructed_Traj,1));
+    fprintf(fileID, '\r\n Number of trajectories after filtering for the blinking and duration : %4.2f\n', NTraj_Filter);
+    fprintf(fileID, '\r\n Number of trajectories after ROI selection : %4.2f\n', NTraj_ROI);
+    fprintf(fileID, '\r\n Number of trajectories validated for MSD calculation : %4.2f\n', NTraj_MSD);
+    fprintf(fileID, '\r\n Number of trajectories validated for the Dapp calculation : %4.2f\n', NTraj_Diff);
+    fprintf(fileID, '\r\n Density of tracks detected (/um²) : %4.2f\n', Density);
+
     fclose(fileID);
 else
     Message = sprintf('The file Parameters_analysis.txt could not be saved. Check the permission are properly set for the directory %s',...
