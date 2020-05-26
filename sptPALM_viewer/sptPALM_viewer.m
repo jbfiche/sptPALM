@@ -5,7 +5,9 @@
 % ****************************
 %
 % JB Fiche
-% Feb, 2015
+% Creation : 2014
+% Last update : 2020/05/26
+%
 % fiche@cbs.cnrs.fr
 % -------------------------------------------------------------------------
 % Purpose: Analyze tracking data obtained from MTT software (Serge et al.
@@ -52,7 +54,7 @@ switch ScreenOption
         Axis_Size = 550;
     case 'large'
         ControlPanel_Width = 600;
-        ControlPanel_Height = 950;
+        ControlPanel_Height = 920;
         DisplayMovie_Width = 750;
         DisplayMovie_Height = 750;
         Axis_Size = 600;

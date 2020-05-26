@@ -5,8 +5,8 @@
 % ****************************
 %
 % JB Fiche
-% Feb, 2020
-% fiche@cbs.cnrs.fr
+% Creation : 2014
+% Last update : 2020/05/26
 % -------------------------------------------------------------------------
 % Purpose: This function is reading all the selected mat output MTT files
 % and creating a variable called "Reconstructed_Traj" where all the
@@ -230,9 +230,12 @@ for Nfiles = 1 : numel(FileToAnalyse)
     SingleStep_Length_temp = SingleStep_Length_temp(Selected_Traj==1);
     SingleStep_Length = cat(1, SingleStep_Length, cell2mat(SingleStep_Length_temp));
     
-    Localizations_all_temp = Localizations_all_temp(Selected_Traj==1);
-    Localizations_all = cat(1, Localizations_all, cell2mat(Localizations_all_temp));
-    Localizations_all_average = cat(1, Localizations_all_average, Localizations_all_average_temp(Selected_Traj==1,:));
+    if CreateTxtFile
+        % Localizations_all_temp = Localizations_all_temp(Selected_Traj==1);
+        Localizations_all = cat(1, Localizations_all, cell2mat(Localizations_all_temp));
+        % Localizations_all_average = cat(1, Localizations_all_average, Localizations_all_average_temp(Selected_Traj==1,:));
+        Localizations_all_average = cat(1, Localizations_all_average, Localizations_all_average_temp);
+    end
 end
 
 h.SingleStep_Length = SingleStep_Length;
@@ -244,20 +247,18 @@ set(h.NTrajectories, 'String', num2str(size(Reconstructed_Traj,1))); % Display t
 %% =====================================================
 
 if CreateTxtFile
-    
-    FileID = fopen('Localizations.txt', 'w+');
-    fprintf(FileID,'x,y,intensity,frame\r\n');
-    
+       
     [~, Idx] = sort(Localizations_all(:,4));
     Localizations_all = Localizations_all(Idx,:);
-    dlmwrite('Localizations.txt', Localizations_all,'-append','precision', '%f', 'newline','pc')
+    Localizations_all = array2table(Localizations_all, 'VariableNames', {'x','y','intensity','frame'});
     
-    fileID_av = fopen('Localizations_average.txt', 'w+');
-    fprintf(fileID_av,'x_mean,y_mean,intensity_mean,traj_length\r\n');
+    writetable(Localizations_all, 'Localizations.txt', 'Delimiter', 'space')
     
     [~, Idx] = sort(Localizations_all_average(:,4));
     Localizations_all_average = Localizations_all_average(Idx,:);
-    dlmwrite('Localizations_average.txt', Localizations_all_average,'-append','precision', '%f', 'newline','pc')
+    Localizations_all_average = array2table(Localizations_all_average, 'VariableNames', {'x_mean','y_mean','intensity_mean','traj_length'});
+    
+    writetable(Localizations_all_average, 'Localizations_average.txt', 'Delimiter', 'space')
 end
 
 %% Calculate and plot the empirical cumulative distribution of the length

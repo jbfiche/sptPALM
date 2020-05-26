@@ -5,7 +5,8 @@
 % ****************************
 %
 % JB Fiche
-% Feb, 2020
+% Last update : 2020/05/26
+%
 % fiche@cbs.cnrs.fr
 % -------------------------------------------------------------------------
 % Purpose: This function is reading all the selected mat output MTT files
@@ -20,7 +21,6 @@
 % To fix:
 % -------------------------------------------------------------------------
 % Copyright Centre National de la Recherche Scientifique, 2020.
-
 
 
 function h = ReconstructTraj_TrackMate_v6(h)
@@ -88,9 +88,10 @@ for nfile = 1 : size(TrackMate,1)
         
         SingleStep_Length = cat(1, SingleStep_Length, D);
         
-        Localizations_all = cat(1, Localizations_all, cat(2, m{ntraj}, zeros(size(m{ntraj},1),1)));
-        
-        Localizations_all_average(ntraj+SavedTracks,:) = [x_av, y_av, 0, L];
+        if CreateTxtFile
+            Localizations_all = cat(1, Localizations_all, cat(2, m{ntraj}, zeros(size(m{ntraj},1),1)));
+            Localizations_all_average(ntraj+SavedTracks,:) = [x_av, y_av, 0, L];
+        end
     end
     
     SavedTracks = SavedTracks + NTraj;
@@ -107,19 +108,17 @@ set(h.NTrajectories, 'String', num2str(size(Reconstructed_Traj,1))); % Display t
 
 if CreateTxtFile
     
-    FileID = fopen('Localizations.txt', 'w+');
-    fprintf(FileID,'x,y,intensity,frame\r\n');
-    
     [~, Idx] = sort(Localizations_all(:,4));
     Localizations_all = Localizations_all(Idx,:);
-    dlmwrite('Localizations.txt', Localizations_all,'-append','precision', '%f', 'newline','pc')
+    Localizations_all = array2table(Localizations_all, 'VariableNames', {'x','y','intensity','frame'});
     
-    fileID_av = fopen('Localizations_average.txt', 'w+');
-    fprintf(fileID_av,'x_mean,y_mean,intensity_mean,traj_length\r\n');
+    writetable(Localizations_all, 'Localizations.txt', 'Delimiter', 'space')
     
     [~, Idx] = sort(Localizations_all_average(:,4));
     Localizations_all_average = Localizations_all_average(Idx,:);
-    dlmwrite('Localizations_average.txt', Localizations_all_average,'-append','precision', '%f', 'newline','pc')
+    Localizations_all_average = array2table(Localizations_all_average, 'VariableNames', {'x_mean','y_mean','intensity_mean','traj_length'});
+    
+    writetable(Localizations_all_average, 'Localizations_average.txt', 'Delimiter', 'space')
 end
 
 %% Calculate and plot the empirical cumulative distribution of the length

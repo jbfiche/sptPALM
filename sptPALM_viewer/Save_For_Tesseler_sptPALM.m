@@ -1,3 +1,24 @@
+%*****************************
+%
+% Save_For_Tesseler_sptPALM.m
+%
+% ****************************
+%
+% JB Fiche
+% Creation : 2016
+% Last update : 2020/05/26
+%
+% fiche@cbs.cnrs.fr
+% -------------------------------------------------------------------------
+% Purpose: Save all the selected localizations in a txt file in order to 
+% run the Tesseler clustering algorithm.
+% -------------------------------------------------------------------------
+% Specific: 
+% -------------------------------------------------------------------------
+% To fix: 
+% -------------------------------------------------------------------------
+% Copyright Centre National de la Recherche Scientifique, 2020.
+
 function h = Save_For_Tesseler_sptPALM(h)
 
 %% Create the txt files for SR-Tesseler clustering algorithm. The first file
