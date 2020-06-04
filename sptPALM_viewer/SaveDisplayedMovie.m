@@ -5,7 +5,8 @@
 % ****************************
 %
 % JB Fiche
-% Mar, 2020
+% Last update : 19-05-2020
+%
 % fiche@cbs.cnrs.fr
 % -------------------------------------------------------------------------
 % Purpose: This option was suggested by C.Royer and first implemented in 

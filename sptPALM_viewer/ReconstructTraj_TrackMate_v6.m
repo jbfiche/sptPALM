@@ -5,12 +5,13 @@
 % ****************************
 %
 % JB Fiche
-% Last update : 2020/05/26
+% Creation 2020
+% Last update : 2020/06/04
 %
 % fiche@cbs.cnrs.fr
 % -------------------------------------------------------------------------
-% Purpose: This function is reading all the selected mat output MTT files
-% and creating a variable called "Reconstructed_Traj" where all the
+% Purpose: This function is reading all the selected TrackMate xml output 
+% files and creating a variable called "Reconstructed_Traj" where all the
 % trajectories (even the single events) are saved.
 % Also, if the "Save trajectories in txt files" is checked, two txt files
 % are created. One with the X,Y positions of ALL the events detected bt
@@ -39,7 +40,7 @@ CreateTxtFile = h.Save_traj_txt.Value;
 %% Ask for the number of frames 
 %% ============================
 
-prompt = {'Enter number of frames per movie :'};
+prompt = {'Enter number of frames analyzed for each TrackMate files :'};
 dlgtitle = 'Input';
 dims = [1 35];
 definput = {''};
@@ -57,6 +58,7 @@ h = rmfield(h,{'TrackMate', 'Total_tracks'});
 
 Reconstructed_Traj = cell(NTrajectory,1);
 Length_Traj = zeros(NTrajectory,1);
+Accepted_tracks = zeros(NTrajectory,1);
 SingleStep_Length = [];
 Localizations_all = [];
 Localizations_all_average = zeros(NTrajectory,4);
@@ -78,19 +80,33 @@ for nfile = 1 : size(TrackMate,1)
         Y = PixelSize*m{ntraj}(:,3);
         D = sqrt( (X(2:end) - X(1:end-1)).^2 + (Y(2:end) - Y(1:end-1)).^2 );
         
-        L = T(end)-T(1);
-        x_av = sum(X)/L;
-        y_av = sum(Y)/L;
+        % Sometimes TrackMate is assigning wrong positions to the events
+        % detected too close to the image boundaries, leading to errors in
+        % the values of D (either equal to 0 or 1). These errors appear as
+        % steps in the cumulative distribution of the single step-lengths. 
+        % These events are automatically removed from the analysis below.
+        % 
+        % Several trajectories are also displaying several times the same
+        % localizations (either in X or Y). Those trajectories are also
+        % removed since the localizations are wrong.
+        % ------------------------------------------
         
-        Reconstructed_Traj{ntraj+SavedTracks} = cat(1,T',X',Y',cat(2, 0, D'));
-        
-        Length_Traj(ntraj+SavedTracks) = (T(end)-T(1))*AcquisitionTime/1000;
-        
-        SingleStep_Length = cat(1, SingleStep_Length, D);
-        
-        if CreateTxtFile
-            Localizations_all = cat(1, Localizations_all, cat(2, m{ntraj}, zeros(size(m{ntraj},1),1)));
-            Localizations_all_average(ntraj+SavedTracks,:) = [x_av, y_av, 0, L];
+        if sum(D==0)==0
+            
+            L = T(end)-T(1);
+            x_av = sum(X)/length(X);
+            y_av = sum(Y)/length(Y);
+            
+            Reconstructed_Traj{ntraj+SavedTracks} = cat(1,T',X',Y',cat(2, 0, D'));
+            Length_Traj(ntraj+SavedTracks) = L*AcquisitionTime/1000;
+            Accepted_tracks(ntraj+SavedTracks) = 1;
+            
+            SingleStep_Length = cat(1, SingleStep_Length, D);
+            
+            if CreateTxtFile
+                Localizations_all = cat(1, Localizations_all, cat(2, m{ntraj}, zeros(size(m{ntraj},1),1)));
+                Localizations_all_average(ntraj+SavedTracks,:) = [x_av, y_av, 0, L];
+            end
         end
     end
     
@@ -99,14 +115,18 @@ for nfile = 1 : size(TrackMate,1)
 end
 
 h.SingleStep_Length = SingleStep_Length;
-h.Length_Traj = Length_Traj;
-h.Reconstructed_Traj = Reconstructed_Traj;
+h.Length_Traj = Length_Traj(Accepted_tracks==1);
+h.Reconstructed_Traj = Reconstructed_Traj(Accepted_tracks==1);
 set(h.NTrajectories, 'String', num2str(size(Reconstructed_Traj,1))); % Display the # of trajectories detected
 
 %% If needed, all the positions are saved in a .txt file
 %% =====================================================
 
 if CreateTxtFile
+    
+    hwarn = warndlg('Keep in mind that TrackMate does not return the localizations of events localized only once. The minimum number of events for the trajectories is equal to 2.');
+    uiwait(hwarn)
+    delete(hwarn)
     
     [~, Idx] = sort(Localizations_all(:,4));
     Localizations_all = Localizations_all(Idx,:);

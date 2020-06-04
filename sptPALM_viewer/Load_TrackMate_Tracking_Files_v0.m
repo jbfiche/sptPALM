@@ -6,6 +6,7 @@
 %
 % JB Fiche
 % Feb, 2020
+% Last update : 2020/06/04
 % fiche@cbs.cnrs.fr
 % -------------------------------------------------------------------------
 % Purpose: Load the excel files obtained as output from the TrackMate software.  
@@ -17,7 +18,7 @@
 % Copyright Centre National de la Recherche Scientifique, 2020.
 
 
-function [h, Launch_Analysis] = Load_TrackMate_Tracking_Files_v0(h)
+function [h, Launch_Analysis, Total_tracks] = Load_TrackMate_Tracking_Files_v0(h)
 
 %% Check whether an analysis was already run for this folder and
 %% if the results would be used again
@@ -66,7 +67,7 @@ switch Launch_Analysis
         FileToAnalyse = LookForDirectories_spt(DirectoryName, h.MTT_FileName.String);
         NFiles = size(FileToAnalyse,1);
 
-        %% Check the .xls files and import the trajectories
+        %% Check the .xml files and import the trajectories
         %% ================================================
         
         Tracks = cell(NFiles,1);

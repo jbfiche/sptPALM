@@ -17,7 +17,7 @@
 % Copyright Centre National de la Recherche Scientifique, 2020.
 
 
-function [h, Launch_Analysis] = Load_MTT_Tracking_Files_v2(h)
+function [h, Launch_Analysis, FileToAnalyse] = Load_MTT_Tracking_Files_v2(h)
 
 %% Check whether an analysis was already run for this folder and
 %% if the results would be used again

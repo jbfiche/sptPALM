@@ -6,7 +6,7 @@
 %
 % JB Fiche
 % Creation : 2014
-% Last update : 2020/05/26
+% Last update : 2020/06/04
 %
 % fiche@cbs.cnrs.fr
 % -------------------------------------------------------------------------
@@ -215,10 +215,10 @@ h = sptPALM_initialize(h, 'Reset_all');
         h = sptPALM_initialize(h, 'Reset_all');
         h.ResultsFileName = h.Saving_file_name.String;
         
-        [h, Repeat_Analysis] = Load_MTT_Tracking_Files_v2(h);
+        [h, Repeat_Analysis, FileToAnalyse] = Load_MTT_Tracking_Files_v2(h);
         SelectTrackingSoftware
         
-        if isequal(Repeat_Analysis, 'Proceed')
+        if isequal(Repeat_Analysis, 'Proceed') && ~isempty(FileToAnalyse)
             clear_display_axis
             h = ReconstructTraj_v6(h);
             h_backup_analysis = h;
@@ -234,9 +234,9 @@ h = sptPALM_initialize(h, 'Reset_all');
         h = sptPALM_initialize(h, 'Reset_all');
         h.ResultsFileName = h.Saving_file_name.String;
         
-        [h, Repeat_Analysis] = Load_TrackMate_Tracking_Files_v0(h);
+        [h, Repeat_Analysis, Total_tracks] = Load_TrackMate_Tracking_Files_v0(h);
         
-        if isequal(Repeat_Analysis, 'Proceed')
+        if isequal(Repeat_Analysis, 'Proceed') && Total_tracks>0
             clear_display_axis
             h = ReconstructTraj_TrackMate_v6(h);
             h_backup_analysis = h;

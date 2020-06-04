@@ -106,10 +106,14 @@ for nTraj = 1 : size(Reconstructed_Traj,1)
     Traj = Reconstructed_Traj{nTraj};
     Frame_Traj_Filtered = [];
     
+    try
     Frame = Traj(1,:);
     X = Traj(2,:);
     Y = Traj(3,:);
     D = Traj(4,2:end);
+    catch
+        disp('')
+    end
     
     % Analyse the distances in order to detect the blinks. Remove the
     % points selected from the trajectory
