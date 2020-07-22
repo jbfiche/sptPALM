@@ -75,7 +75,7 @@ DetectionList = [];
 %% ==================
 
 % Calculate the typical time Tpx to travel a distance equal to the
-% pixel size. If this value is ten times higher than
+% pixel size. If this value is five times higher than
 % the exposure time, we can expect no deformation of the psf during
 % the exposure time. The characteristic time to evaluate the
 % trajectory would be the exposure time.
@@ -92,7 +92,7 @@ if Tpx1 > 5*ExposureTime
     dt_step_1 = ExposureTime;
     N_step_1 = 1;
 else
-    hwarn = warndlg('The diffusion coefficient #1 is high with respect to the values indicated for the exposure time and the pixel size. The calculation might take a while and the fluorescent spots could appear elongated ');
+    hwarn = warndlg('The diffusion coefficient #1 is high with respect to the values indicated for the exposure time and the pixel size. Deformation of the fluorescent spot could be observed.');
     uiwait(hwarn)
     delete(hwarn)
     N_step_1 = round(5*ExposureTime/Tpx1);
@@ -108,7 +108,7 @@ if ~isnan(Diff2)
         dt_step_2 = ExposureTime;
         N_step_2 = 1;
     else
-        hwarn = warndlg('The diffusion coefficient #2 is high with respect to the values indicated for the exposure time and the pixel size. The calculation might take a while and the fluorescent spots could appear elongated ');
+        hwarn = warndlg('The diffusion coefficient #2 is high with respect to the values indicated for the exposure time and the pixel size. Deformation of the fluorescent spot could be observed.');
         uiwait(hwarn)
         delete(hwarn)
         N_step_2 = round(5*ExposureTime/Tpx2);
@@ -186,7 +186,7 @@ for nFrame = 1 : NFrames
         % average diffusion coefficient.
         % The movement being brownian, the distance r is described by a
         % normal law N(0,sqrt(4Dt)). The x/y coordinates are then described
-        % by a normal law of average 0 and standard deviation 2Dt. 
+        % by a normal law of average 0 and standard deviation sqrt(2Dt). 
         %
         % Note that the values r,x,y are expressed in um.
         % -----------------------------------------------

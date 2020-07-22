@@ -92,7 +92,7 @@ end
 nTracks = str2double( root.getAttribute('nTracks') );
 tracks = cell(nTracks, 1);
 trackNodes = root.getElementsByTagName('particle');
-Total_N_detections = 0;
+% Total_N_detections = 0;
 
 fprintf('Importing trajectories from file # %i ...     ', filenumber);
 
@@ -106,18 +106,22 @@ for i = 1 : nTracks
     
     detectionNodes = trackNode.getElementsByTagName('detection');
     
+    
     for j = 1 : nSpots
         
         detectionNode = detectionNodes.item(j-1);
-        t = str2double(detectionNode.getAttribute('t'));
-        y = str2double(detectionNode.getAttribute('x'));
-        x = str2double(detectionNode.getAttribute('y'));
-        %             z = str2double(detectionNode.getAttribute('z'));
-        A(j, :) = [ t x y ];
+        
+%         if ~isempty(detectionNode)
+            t = str2double(detectionNode.getAttribute('t'));
+            y = str2double(detectionNode.getAttribute('x'));
+            x = str2double(detectionNode.getAttribute('y'));
+            %             z = str2double(detectionNode.getAttribute('z'));
+            A(j, :) = [ t x y ];
+%         end
         
     end
     
     tracks{i} = A;
-    
 end
+
 fprintf('\r')

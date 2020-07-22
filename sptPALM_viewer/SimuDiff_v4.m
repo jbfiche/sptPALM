@@ -69,6 +69,29 @@ TrajLength = [];
 SingleStepLength = [];
 DetectionList = [];
 
+%% Check that the diffusion coefficient is not too high with respect to the acquisition time 
+%% and the pixel size
+%% ==================
+
+Tpx1 = PixelSize^2/(4*Diff1);
+
+if Tpx1 > 5*AcquisitionTime
+    hwarn = warndlg('The diffusion coefficient #1 is high with respect to the values indicated for the exposure time and the pixel size. Deformation of the fluorescent spot could be observed experimentally.');
+    uiwait(hwarn)
+    delete(hwarn)
+end
+
+if ~isnan(Diff2)
+    
+    Tpx2 = PixelSize^2/(4*Diff2);
+    
+    if Tpx2 > 5*AcquisitionTime
+        hwarn = warndlg('The diffusion coefficient #2 is high with respect to the values indicated for the exposure time and the pixel size. Deformation of the fluorescent spot could be observed experimentally.');
+        uiwait(hwarn)
+        delete(hwarn)
+    end
+end
+
 %% Define the folder where the results of the analysis and the movies will
 %% be saved
 %% ========
@@ -125,7 +148,7 @@ for nFrame = 1 : NFrames
         % average diffusion coefficient.
         % The movement being brownian, the distance r is described by a
         % normal law N(0,sqrt(4Dt)). The x/y coordinates are then described
-        % by a normal law of average 0 and standard deviation 2Dt. 
+        % by a normal law of average 0 and standard deviation sqrt(2Dt). 
         %
         % Note that the values r,x,y are expressed in um.
         % -----------------------------------------------
