@@ -45,8 +45,8 @@ for ntraj = 1 : NTrajectory
     Y = PixelSize*m{ntraj}(:,3);
     D = sqrt( (X(2:end) - X(1:end-1)).^2 + (Y(2:end) - Y(1:end-1)).^2 );
     
-    Reconstructed_Traj{ntraj} = cat(1,T',X',Y',cat(2, 0, D'));
-    Frame_Traj(ntraj,:) = [T(1), T(end)];
+    Reconstructed_Traj{ntraj} = cat(1,T'+1,X',Y',cat(2, 0, D'));
+    Frame_Traj(ntraj,:) = [T(1)+1, T(end)+1];
 end
 
 fprintf('\n')

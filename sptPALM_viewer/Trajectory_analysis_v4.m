@@ -66,6 +66,7 @@ Results.Length_Traj = h.Length_Traj;
 Results.PixelSize = PixelSize;
 Results.AcquisitionTime = AcquisitionTime;
 Results.Reconstructed_Traj = Reconstructed_Traj;
+Results.DiffCalculationMethod = DiffCalculationMethod;
 
 %% Filter the trajectories according to the parameters selected
 %% ============================================================

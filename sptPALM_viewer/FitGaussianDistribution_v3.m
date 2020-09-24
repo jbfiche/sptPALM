@@ -19,7 +19,9 @@ hist_Bin = hist_Bin';
 axes(ax)
 hold off
 cla
-bar(hist_Bin,hist_Values)
+b = bar(hist_Bin,hist_Values);
+b.FaceColor = [0.6 0.6 0.6];
+
 ax.FontSize = FontSize;
 axis square
 box on

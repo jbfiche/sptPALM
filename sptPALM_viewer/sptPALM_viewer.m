@@ -345,11 +345,11 @@ h = sptPALM_initialize(h, 'Reset_all');
         set(h.Slider_SelectFrame, 'SliderStep', [1/h.MovieDisplayNImages,1/h.MovieDisplayNImages])
         set(h.Edit_SelectFrame, 'String', '1')
         
-        ChangeContrast_sptPALM_v2(h)
-        
         if isfield(h, 'MovieDisplayROI')
             h = rmfield(h, 'MovieDisplayROI');
         end
+        
+        ChangeContrast_sptPALM_v2(h)
         
         set(h.LoadTraj, 'Enable', 'on')
         set(h.MinTrackLength, 'Enable', 'on')
