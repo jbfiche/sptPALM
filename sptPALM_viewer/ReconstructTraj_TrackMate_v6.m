@@ -1,6 +1,6 @@
 %*****************************
 %
-% ReconstructTraj_v6.m
+% ReconstructTraj_TrackMate_v6.m
 %
 % ****************************
 %
