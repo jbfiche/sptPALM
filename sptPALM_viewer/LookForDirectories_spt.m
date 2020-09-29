@@ -59,7 +59,12 @@ if length(dirinfo) > 2
         else
             Path = strcat(DirectoryName, '\', dirinfo(k).name);
         end
-        if isfolder(Path)
+        
+        % For MatlabR2017 the function is isdir. For R2019a is dir does not
+        % work anymore and needs to be replaced by isfolder.
+        % --------------------------------------------------
+        
+        if isdir(Path)
             if isunix
                 AllDirectories{k-2} = strcat(DirectoryName, '/', dirinfo(k).name);
             else

@@ -37,16 +37,16 @@ ax = h.MainAxes;
 
 CreateTxtFile = h.Save_traj_txt.Value;
 
-%% Ask for the number of frames 
-%% ============================
-
-prompt = {'Enter number of frames analyzed for each TrackMate files :'};
-dlgtitle = 'Input';
-dims = [1 35];
-definput = {''};
-answer = inputdlg(prompt,dlgtitle,dims,definput);
-
-Nframe = str2double(answer{1});
+% %% Ask for the number of frames if there was more that one file loaded
+% %% ===================================================================
+% 
+% prompt = {'Enter number of frames analyzed for each TrackMate files :'};
+% dlgtitle = 'Input';
+% dims = [1 35];
+% definput = {''};
+% answer = inputdlg(prompt,dlgtitle,dims,definput);
+% 
+% Nframe = str2double(answer{1});
 
 %% Load all the trajectories and save them in "Reconstructed_Traj" with the right format
 %% ======================================================================================
@@ -64,21 +64,27 @@ Localizations_all = [];
 Localizations_all_average = zeros(NTrajectory,4);
 
 SavedTracks = 0;
+Nframe = 0;
 
 for nfile = 1 : size(TrackMate,1)
     
     fprintf('\n Formating the trajectories of file #%i ...     ',nfile)
     m = TrackMate{nfile};
     NTraj = size(m,1);
+    maxFrame = 1;
     
     for ntraj = 1 : NTraj
         
         fprintf('\b\b\b\b%03i%%', round(100*ntraj/NTraj))
         
-        T = m{ntraj}(:,1) + Nframe*(nfile-1);
+        T = m{ntraj}(:,1) + Nframe;
         X = PixelSize*m{ntraj}(:,2);
         Y = PixelSize*m{ntraj}(:,3);
         D = sqrt( (X(2:end) - X(1:end-1)).^2 + (Y(2:end) - Y(1:end-1)).^2 );
+        
+        if max(m{ntraj}(:,1)) > maxFrame
+            maxFrame = max(m{ntraj}(:,1));
+        end
         
         % Sometimes TrackMate is assigning wrong positions to the events
         % detected too close to the image boundaries, leading to errors in
@@ -110,6 +116,7 @@ for nfile = 1 : size(TrackMate,1)
         end
     end
     
+    Nframe = maxFrame + Nframe;
     SavedTracks = SavedTracks + NTraj;
     fprintf('\n')
 end

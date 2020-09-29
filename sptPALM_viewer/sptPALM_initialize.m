@@ -248,4 +248,8 @@ switch Action
         if isfield(Results, 'AvIm')
             h.AvIm = Results.AvIm;
         end
+        
+        if isfield(Results, 'DiffCalculationMethod')
+            set(h.DiffusionCalculationMethod, 'Value', Results.DiffCalculationMethod)
+        end
 end
