@@ -123,4 +123,4 @@ A simulation of a sptPALM experiment can be launched as follows :
 
    
 
-For more information regarding the simulations, check the document sptPALM_simulation.pdf
+For more information regarding the simulations, check the document sptPALM_simulation.pdf in the folder Doc_simulation.
