@@ -190,7 +190,7 @@ h = sptPALM_initialize(h, 'Reset_all');
                 set(h.LoadMTT, 'callback', @LoadMTT);
                 
             case 2
-                set(h.MTT_FileName, 'String', '*-spots.csv');
+                set(h.MTT_FileName, 'String', '*.csv');
                 set(h.Saving_file_name, 'String', 'TrackMate_sptPALM_analysis.mat');
                 set(h.LoadMTT, 'String', 'Load TrackMate files');
                 set(h.LoadMTT, 'callback', @LoadTrackMate);
