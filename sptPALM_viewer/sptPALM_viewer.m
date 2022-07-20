@@ -6,7 +6,7 @@
 %
 % JB Fiche
 % Creation : 2014
-% Last update : 2020/07/21
+% Last update : 2022/07/19
 %
 % fiche@cbs.cnrs.fr
 % -------------------------------------------------------------------------
@@ -190,7 +190,7 @@ h = sptPALM_initialize(h, 'Reset_all');
                 set(h.LoadMTT, 'callback', @LoadMTT);
                 
             case 2
-                set(h.MTT_FileName, 'String', '*.xml');
+                set(h.MTT_FileName, 'String', '*-spots.csv');
                 set(h.Saving_file_name, 'String', 'TrackMate_sptPALM_analysis.mat');
                 set(h.LoadMTT, 'String', 'Load TrackMate files');
                 set(h.LoadMTT, 'callback', @LoadTrackMate);
@@ -234,12 +234,12 @@ h = sptPALM_initialize(h, 'Reset_all');
         h = sptPALM_initialize(h, 'Reset_all');
         h.ResultsFileName = h.Saving_file_name.String;
         
-        [h, Repeat_Analysis] = Load_TrackMate_Tracking_Files_v0(h);
+        [h, Repeat_Analysis] = Load_TrackMate_Tracking_Files_v1(h);
         
         if isequal(Repeat_Analysis, 'Proceed')
             if h.Total_tracks>0
                 clear_display_axis
-                h = ReconstructTraj_TrackMate_v6(h);
+                h = ReconstructTraj_TrackMate_v7(h);
                 h_backup_analysis = h;
             else
                 hwarn = warndlg('There was no tracks found in the selected file(s)');
