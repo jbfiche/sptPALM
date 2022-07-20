@@ -1,16 +1,16 @@
 %*****************************
 %
-% ReconstructTraj_TrackMate_v6.m
+% ReconstructTraj_TrackMate_v7.m
 %
 % ****************************
 %
 % JB Fiche
-% Creation 2020
-% Last update : 2020/06/04
+% Creation 2022
+% Last update : 2020/07/19
 %
 % fiche@cbs.cnrs.fr
 % -------------------------------------------------------------------------
-% Purpose: This function is reading all the selected TrackMate xml output 
+% Purpose: This function is reading all the selected TrackMate csv output 
 % files and creating a variable called "Reconstructed_Traj" where all the
 % trajectories (even the single events) are saved.
 % Also, if the "Save trajectories in txt files" is checked, two txt files
@@ -24,7 +24,7 @@
 % Copyright Centre National de la Recherche Scientifique, 2020.
 
 
-function h = ReconstructTraj_TrackMate_v6(h)
+function h = ReconstructTraj_TrackMate_v7(h)
 
 AcquisitionTime = str2double(get(h.AcquisitionTime, 'String')); % in ms
 PixelSize = str2double(get(h.PixelSize, 'String')); % in �m
@@ -36,17 +36,6 @@ ax = h.MainAxes;
 %% =============================================
 
 CreateTxtFile = h.Save_traj_txt.Value;
-
-% %% Ask for the number of frames if there was more that one file loaded
-% %% ===================================================================
-% 
-% prompt = {'Enter number of frames analyzed for each TrackMate files :'};
-% dlgtitle = 'Input';
-% dims = [1 35];
-% definput = {''};
-% answer = inputdlg(prompt,dlgtitle,dims,definput);
-% 
-% Nframe = str2double(answer{1});
 
 %% Load all the trajectories and save them in "Reconstructed_Traj" with the right format
 %% ======================================================================================
@@ -70,20 +59,22 @@ for nfile = 1 : size(TrackMate,1)
     
     fprintf('\n Formating the trajectories of file #%i ...     ',nfile)
     m = TrackMate{nfile};
-    NTraj = size(m,1);
+    Traj_id = unique(m(:,2));
+    NTraj = size(Traj_id, 1);
     maxFrame = 1;
     
     for ntraj = 1 : NTraj
         
         fprintf('\b\b\b\b%03i%%', round(100*ntraj/NTraj))
         
-        T = m{ntraj}(:,1) + Nframe;
-        X = PixelSize*m{ntraj}(:,2);
-        Y = PixelSize*m{ntraj}(:,3);
+        idx = find(m(:,2)==Traj_id(ntraj));
+        T = m(idx, 5) + Nframe;
+        X = PixelSize*m(idx, 3);
+        Y = PixelSize*m(idx, 4);
         D = sqrt( (X(2:end) - X(1:end-1)).^2 + (Y(2:end) - Y(1:end-1)).^2 );
         
-        if max(m{ntraj}(:,1)) > maxFrame
-            maxFrame = max(m{ntraj}(:,1));
+        if max(m(idx, 5)) > maxFrame
+            maxFrame = max(m(idx, 5));
         end
         
         % Sometimes TrackMate is assigning wrong positions to the events
