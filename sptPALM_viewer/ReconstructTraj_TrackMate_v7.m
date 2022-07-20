@@ -71,8 +71,14 @@ for nfile = 1 : size(TrackMate,1)
         T = m(idx, 5) + Nframe;
         X = PixelSize*m(idx, 3);
         Y = PixelSize*m(idx, 4);
+        
+        % sort the traces according to detection frame time
+        [T, idx_t] = sort(T);
+        X = X(idx_t);
+        Y = Y(idx_t);
         D = sqrt( (X(2:end) - X(1:end-1)).^2 + (Y(2:end) - Y(1:end-1)).^2 );
         
+        % update the maxframe value
         if max(m(idx, 5)) > maxFrame
             maxFrame = max(m(idx, 5));
         end
