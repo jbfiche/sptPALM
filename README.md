@@ -1,4 +1,4 @@
-sptPALM_viewer is a Matlab software used to analyze and visualize single particle tracking data. The software does not work on the raw images but on the tracks coordinates reconstructed by either **MTT** or **TrackMate** software (latest version v7 or the TrackMate batcher). 
+sptPALM_viewer is a Matlab software used to analyze and visualize single particle tracking data. The software does not work on the raw images but on the tracks coordinates reconstructed by either **MTT** or **TrackMate** software (latest version v7 or the TrackMate batcher). If TrackMate is used, make sure the images width/height are set to pixel (and no predefined values in nm or µm).
 
 sptPALM_viewer was written in Matlab2019a and was tested on either Windows 10 or Linux (Ubuntu 18.04.3) running computers. Compiled version for windows is available on demand. The compiled version will necessitate to download compiler for the Mathorks website (installation procedure is attached to the compiled software). This step should require <20 minutes to download and install. 
 
