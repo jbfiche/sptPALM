@@ -5,8 +5,8 @@
 % ****************************
 %
 % JB Fiche
-% Creation 2022
-% Last update : 2020/07/19
+% Creation 2020
+% Last update : 2022/07/19
 %
 % fiche@cbs.cnrs.fr
 % -------------------------------------------------------------------------
@@ -107,9 +107,10 @@ for nfile = 1 : size(TrackMate,1)
             SingleStep_Length = cat(1, SingleStep_Length, D);
             
             if CreateTxtFile
-                Localizations_all = cat(1, Localizations_all, cat(2, m{ntraj}, zeros(size(m{ntraj},1),1)));
-                Localizations_all_average(ntraj+SavedTracks,:) = [x_av, y_av, 0, L];
+                Localizations_all = cat(1, Localizations_all, cat(2, X, Y, T)); % Save all the trajectories keeping only X, Y, frame
+                Localizations_all_average(ntraj+SavedTracks,:) = [x_av, y_av, min(T), L];
             end
+   
         end
     end
     
@@ -132,15 +133,15 @@ if CreateTxtFile
     uiwait(hwarn)
     delete(hwarn)
     
-    [~, Idx] = sort(Localizations_all(:,4));
+    [~, Idx] = sort(Localizations_all(:,3));
     Localizations_all = Localizations_all(Idx,:);
-    Localizations_all = array2table(Localizations_all, 'VariableNames', {'x','y','intensity','frame'});
+    Localizations_all = array2table(Localizations_all, 'VariableNames', {'x','y','frame'});
     
     writetable(Localizations_all, 'Localizations.txt', 'Delimiter', 'space')
     
-    [~, Idx] = sort(Localizations_all_average(:,4));
+    [~, Idx] = sort(Localizations_all_average(:,3));
     Localizations_all_average = Localizations_all_average(Idx,:);
-    Localizations_all_average = array2table(Localizations_all_average, 'VariableNames', {'x_mean','y_mean','intensity_mean','traj_length'});
+    Localizations_all_average = array2table(Localizations_all_average, 'VariableNames', {'x_mean','y_mean','first_frame','traj_length'});
     
     writetable(Localizations_all_average, 'Localizations_average.txt', 'Delimiter', 'space')
 end
