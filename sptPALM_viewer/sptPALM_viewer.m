@@ -6,7 +6,7 @@
 %
 % JB Fiche
 % Creation : 2014
-% Last update : 2022/07/19
+% Last update : 2023/06/26
 %
 % fiche@cbs.cnrs.fr
 % -------------------------------------------------------------------------
@@ -141,7 +141,7 @@ h.SimulationParameters = SimulationParameters;
 
 set(h.Saving_file_name, 'callback', @UpdateSavingFileName);
 set(h.TrackingSoftware, 'callback', @SelectTrackingSoftware);
-set(h.LoadMTT, 'callback', @LoadMTT);
+set(h.LoadData, 'callback', @LoadTrackMate);
 set(h.Load_Previous_analysis, 'callback', @Load_Previous_analysis);
 set(h.MinTrajLength, 'callback', @CheckMinTrajSize);
 set(h.AnalyseTrajectories, 'callback', @AnalyseTrajectories);
@@ -180,20 +180,24 @@ h = sptPALM_initialize(h, 'Reset_all');
 %% ============================================================
 
     function SelectTrackingSoftware(~,~)
-
+        
         Soft = get(h.TrackingSoftware, 'Value');
         switch Soft
             case 1
-                set(h.MTT_FileName, 'String', '*.mat');
-                set(h.Saving_file_name, 'String', 'MTT_sptPALM_analysis.mat');
-                set(h.LoadMTT, 'String', 'Load MTT files');
-                set(h.LoadMTT, 'callback', @LoadMTT);
-                
-            case 2
-                set(h.MTT_FileName, 'String', '*.csv');
+                set(h.Data_FileName, 'String', '*.csv');
                 set(h.Saving_file_name, 'String', 'TrackMate_sptPALM_analysis.mat');
-                set(h.LoadMTT, 'String', 'Load TrackMate files');
-                set(h.LoadMTT, 'callback', @LoadTrackMate);
+                set(h.LoadData, 'String', 'Load TrackMate files');
+                set(h.LoadData, 'callback', @LoadTrackMate);
+            case 2
+                set(h.Data_FileName, 'String', '*.csv');
+                set(h.Saving_file_name, 'String', 'TrackMate_sptPALM_analysis.mat');
+                set(h.LoadData, 'String', 'Indicate data folder');
+                set(h.LoadData, 'callback', @BatchTrackMate);
+            case 3
+                set(h.Data_FileName, 'String', '*.mat');
+                set(h.Saving_file_name, 'String', 'MTT_sptPALM_analysis.mat');
+                set(h.LoadData, 'String', 'Load MTT files');
+                set(h.LoadData, 'callback', @LoadMTT);
         end
     end
 
@@ -207,7 +211,7 @@ h = sptPALM_initialize(h, 'Reset_all');
     end
 
 %% Load MTT tracking files
-%% ===================
+%% =======================
 
     function LoadMTT(~,~)
         
@@ -246,6 +250,50 @@ h = sptPALM_initialize(h, 'Reset_all');
                 uiwait(hwarn)
                 delete(hwarn)
             end
+        end
+    end
+
+%% Launch a batch analysis (only available for TrackMate)
+%% ======================================================
+
+    function BatchTrackMate(~,~)
+        
+        clc
+        h = sptPALM_initialize(h, 'Reset_all');
+        h.ResultsFileName = h.Saving_file_name.String;
+        
+        % look for all folders containing TrackMate data
+        FolderToAnalyse = LookForDirectories_batch(h.Data_FileName.String);
+        NFolders = size(FolderToAnalyse, 1);
+        
+        % for each folder, load the data and launch the analysis with the
+        % default parameters
+        for nFolder = 1 : NFolders
+            clc
+            h = sptPALM_initialize(h, 'Reset_all');
+            h.ResultsFileName = h.Saving_file_name.String;
+            h.batch = true;
+            
+            % Loading the data
+            WorkingDir = FolderToAnalyse(nFolder);
+            fprintf('\n Batch analysis : %s ...     ', WorkingDir{1})
+            fprintf('\n Folder #%i / %i     ',nFolder, NFolders)
+            h = Load_TrackMate_Tracking_Files_batch_v1(h, WorkingDir{1});
+            
+            if h.Total_tracks>0
+                clear_display_axis
+                h = ReconstructTraj_TrackMate_v7(h);
+                h_backup_analysis = h;
+            else
+                hwarn = warndlg('There was no track found in the selected file(s)');
+                uiwait(hwarn)
+                delete(hwarn)
+            end
+            
+            % Launching the analysis
+            h = Trajectory_analysis_v4(h);
+            
+            
         end
     end
         
@@ -374,7 +422,7 @@ h = sptPALM_initialize(h, 'Reset_all');
     function LoadTraj(~,~)
         
         Soft = get(h.TrackingSoftware, 'Value');
-        FileName_template = get(h.MTT_FileName, 'String');
+        FileName_template = get(h.Data_FileName, 'String');
 
         switch Soft
             case 1

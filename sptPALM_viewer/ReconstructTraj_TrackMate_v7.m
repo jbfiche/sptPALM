@@ -129,9 +129,9 @@ set(h.NTrajectories, 'String', num2str(size(Reconstructed_Traj,1))); % Display t
 
 if CreateTxtFile
     
-    hwarn = warndlg('Keep in mind that TrackMate does not return the localizations of events localized only once. The minimum number of events for the trajectories is equal to 2.');
-    uiwait(hwarn)
-    delete(hwarn)
+%     hwarn = warndlg('Keep in mind that TrackMate does not return the localizations of events localized only once. The minimum number of events for the trajectories is equal to 2.');
+%     uiwait(hwarn)
+%     delete(hwarn)
     
     [~, Idx] = sort(Localizations_all(:,3));
     Localizations_all = Localizations_all(Idx,:);

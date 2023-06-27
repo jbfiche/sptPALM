@@ -70,7 +70,6 @@ Results.DiffCalculationMethod = DiffCalculationMethod;
 
 %% Filter the trajectories according to the parameters selected
 %% ============================================================
-
 [Reconstructed_Traj_Filtered, NTraj_Filter] = Filter_Trajectories(Reconstructed_Traj, MaxBlinks, MinTrajLength_MSDCalculation, MinNPoint, MaxStepLength);
 set(h.NTrajectoriesFiltered, 'String', num2str(NTraj_Filter)); % Display the # of trajectories selected after applying the filters
 h.Reconstructed_Traj_Filtered = Reconstructed_Traj_Filtered;
@@ -78,7 +77,6 @@ h.Reconstructed_Traj_Filtered = Reconstructed_Traj_Filtered;
 %% Look whether we want to define an ROI. If a ROI is defined, return
 %% only the trajectories detected within the ROI
 %% =============================================
-
 [h, Area, Reconstructed_Traj_ROI, NTraj_ROI] = Select_Trajectories_ROI(h, Results, ax, Reconstructed_Traj_Filtered, PixelSize);
 set(h.NTrajectoriesROI, 'String', num2str(NTraj_ROI));  % Display the # of trajectories detected within the ROI
 
@@ -104,7 +102,6 @@ end
 NTraj_MSD = size(MSD_all,1);
 h.Reconstructed_Traj_MSD = Reconstructed_Traj_MSD;
 % set(h.NTrajectoriesMSD, 'String', num2str(NTraj_MSD)); % Display the # of trajectories accepted for MSD calculation
-
 
 %% Return the track density and display it on the GUI
 %% ==================================================

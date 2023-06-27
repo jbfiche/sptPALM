@@ -24,10 +24,14 @@ else
     AvImFound = 0;
 end
 
-if ~ROIFound || ~AvImFound
-    DefineROI = questdlg('Do you want to define an ROI for the analysis?', 'Define ROI', 'Define ROI', 'No', 'Define ROI');
-else
-    DefineROI = questdlg('Do you want to load previously saved ROI for the analysis?', 'Load ROI', 'Load ROI', 'Define ROI', 'No', 'Load ROI');
+if h.batch == true
+    DefineROI = 'No';
+else    
+    if ~ROIFound || ~AvImFound
+        DefineROI = questdlg('Do you want to define an ROI for the analysis?', 'Define ROI', 'Define ROI', 'No', 'Define ROI');
+    else
+        DefineROI = questdlg('Do you want to load previously saved ROI for the analysis?', 'Load ROI', 'Load ROI', 'Define ROI', 'No', 'Load ROI');
+    end
 end
 
 switch DefineROI

@@ -67,7 +67,7 @@ switch Launch_Analysis
         %% positions of all the detected spots and to which track it is associated.
         %% =======================================================================
                
-        FileToAnalyse = LookForDirectories_spt(DirectoryName, h.MTT_FileName.String);
+        FileToAnalyse = LookForDirectories_spt(DirectoryName, h.Data_FileName.String);
         NFiles = size(FileToAnalyse, 1);
         
         %% Check the .csv files and import the trajectories
