@@ -146,9 +146,12 @@ h.Dapp = Dapp;
 % The variable varargout contains the msd values. Depending on whether there
 % is a single population or two, the size of this variable will change.
 % ---------------------------------------------------------------------
-
 LogDapp = log10(Dapp);
-[NbrGaussianFit, D_mean, varargout] = FitGaussianDistribution_v3(LogDapp, MSD_all, FontSize, ax, round(MaxDisplayTime*1000/AcquisitionTime), Reconstructed_Traj_MSD_accepted, DiffCalculationMethod);
+if h.batch == true
+    [NbrGaussianFit, D_mean, varargout] = FitGaussianDistribution_batch_v1(LogDapp, MSD_all, FontSize, ax, round(MaxDisplayTime*1000/AcquisitionTime), Reconstructed_Traj_MSD_accepted, DiffCalculationMethod);
+else    
+    [NbrGaussianFit, D_mean, varargout] = FitGaussianDistribution_v3(LogDapp, MSD_all, FontSize, ax, round(MaxDisplayTime*1000/AcquisitionTime), Reconstructed_Traj_MSD_accepted, DiffCalculationMethod);
+end
 MSD_FIT = varargout{1};
 
 T = cat(2, LogDapp(:,1), Dapp(:,1));
@@ -276,6 +279,10 @@ if Plot_Traj
     end
     
     saveas(hPlot, 'Trajectories.png');
+    
+    if h.batch == true
+        close(hPlot)
+    end
 end
 
 %% Save the parameters in the file called MTT_sptPALM_analysis.mat

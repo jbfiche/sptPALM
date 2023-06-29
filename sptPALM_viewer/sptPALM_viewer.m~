@@ -168,7 +168,7 @@ set(h.LaunchSimulation,'callback', @LaunchSimulation);
 
 h.FontSize = 10;
 h.ResultsFileName = 'MTT_sptPALM_analysis.mat';
-h.batch = false;
+h.batch = false
 
 global h_backup
 global h_backup_analysis
