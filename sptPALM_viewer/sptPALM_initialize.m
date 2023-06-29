@@ -138,9 +138,9 @@ switch Action
             FileExtension = h.FileToAnalyse{1}(end-2:end);
             switch FileExtension
                 case 'mat'
+                    set(h.TrackingSoftware, 'Value', 3);
+                case 'csv'
                     set(h.TrackingSoftware, 'Value', 1);
-                case 'xml'
-                    set(h.TrackingSoftware, 'Value', 2);
             end
         end
         

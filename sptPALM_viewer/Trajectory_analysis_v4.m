@@ -270,6 +270,7 @@ if Plot_Traj
         rectangle('Position', ScaleBar, 'EdgeColor', [1 1 1], 'FaceColor', [1 1 1], 'LineWidth', 2)
         
     else
+        set(gca,'YDir','reverse');
         AxisLimits = axis;
         Box = [AxisLimits(1), AxisLimits(3), AxisLimits(2)-AxisLimits(1), AxisLimits(4)-AxisLimits(3)];
         rectangle('Position', Box, 'EdgeColor', [0 0 0], 'LineWidth', 2)

@@ -69,7 +69,11 @@ switch DefineROI
         end
         
         disp(get(h.TrackingSoftware, 'Value'))
-        plot(Traj_average(3,:)/PixelSize, Traj_average(2,:)/PixelSize, '.r')
+        if get(h.TrackingSoftware, 'Value') == 3
+            plot(Traj_average(3,:)/PixelSize, Traj_average(2,:)/PixelSize, '.r')
+        else
+            plot(Traj_average(2,:)/PixelSize, Traj_average(3,:)/PixelSize, '.r')
+        end
         
         % Define the ROI by clicking directly on the image
         % ------------------------------------------------

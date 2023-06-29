@@ -69,8 +69,8 @@ for nfile = 1 : size(TrackMate,1)
         
         idx = find(m(:,2)==Traj_id(ntraj));
         T = m(idx, 5) + Nframe;
-        X = PixelSize*m(idx, 3);
-        Y = PixelSize*m(idx, 4);
+        X = PixelSize*m(idx, 4);
+        Y = PixelSize*m(idx, 3);
         
         % sort the traces according to detection frame time
         [T, idx_t] = sort(T);
