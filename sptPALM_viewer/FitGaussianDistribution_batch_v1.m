@@ -47,32 +47,29 @@ plot(hist_Bin, GaussianFit, '--k', 'LineWidth',1)
 disp(strcat('For the gaussian fit, R^2=', num2str(100*gof1.rsquare), '%'))
 
 % Analyze the results in order to decide whether a two populations fit
-% should be performed - if the residual represents more that 10% of the
-% total data, a fit of the residual is performed in order to define the
-% position of its maximum value.
-% -----------------------------
+% should be performed - if the absolute residual represents more that 5% 
+% of the total data, a fit with two Gaussian will be performed. The
+% separation between the two populations is approximated and the starting
+% parameters are estimated accordingly.
+% --------------------------------------
 
-residual_fraction = sum(output.residuals);
+abs_residual_fraction = sum(abs(output.residuals));
+% residual_fraction = sum(output.residuals)
 
-if residual_fraction > 10
-    [A0_res, Idx] = max(hist_Values); % Estimate the starting parameters for the first fit
-    A0_res = double(A0_res);
-    X0_res = double(hist_Bin(Idx));
-    s0_res = double(1);
-    fitobject_res = fit(hist_Bin, output.residuals, Gaussian, 'start', [s0_res,X0_res,A0_res]);
+if abs_residual_fraction > 5
+
+    NbrGaussianFit = 2;
+    X_sep = mean(hist_Bin .* hist_Values);
+    D0 = LogDapp(LogDapp>X_sep);
+    D1 = LogDapp(LogDapp<=X_sep);
     
-    A0 = fitobject.A;
-    s0 = fitobject.s;
-    X0 = fitobject.x0;
-    A1 = fitobject_res.A;
-    s1 = fitobject_res.s;
-    X1 = fitobject_res.x0;
+    s01 = std(D0);
+    x01 = mean(D0);
+    A01 = hist_Values(find(hist_Bin>x01, 1, 'first'));
+    s02 = std(D1);
+    x02 = mean(D1);
+    A02 = hist_Values(find(hist_Bin>x02, 1, 'first'));
     
-    if abs(X1 - X0) > (s1 + s0)
-        NbrGaussianFit = 2;
-    else
-        NbrGaussianFit = 1;
-    end
 else
     NbrGaussianFit = 1;
 end 
@@ -86,12 +83,9 @@ if NbrGaussianFit == 1
     D_mean = fitobject.x0;
 end
 
-% A two-populations fit is performed when two conditions are met :
-%      1- when more than 10% of the data are not fitted by a 
-%         single population fit 
-%      2- when the maximum of the residual population is distant enough
-%         from the first fitted population (at least twice the std) 
-% -----------------------------------------------------------------
+% A two-populations fit is performed when more than 10% of the data are not
+% fitted by a single population fit 
+% ----------------------------------
 
 if NbrGaussianFit == 2
     
@@ -99,9 +93,9 @@ if NbrGaussianFit == 2
                     'Robust', 'LAR', ...
                     'MaxIter', 1000, ...
                     'MaxFunEvals', 1000, ...
-                    'StartPoint', [s0,X0,A0,s1,X1,A1]);
+                    'StartPoint', [s01,x01,A01,s02,x02,A02]);
         
-    Gaussian2 = fittype( @(s1,x01,A1,s2,x02,A2,x) A1*exp(-((x - x01)/(2*s1)).^2) + A2*exp(-((x - x02)/(2*s2)).^2),...
+    Gaussian2 = fittype( @(s1,x1,A1,s2,x2,A2,x) A1*exp(-((x - x1)/(2*s1)).^2) + A2*exp(-((x - x2)/(2*s2)).^2),...
                         'options', fo);
     [fitobject2,gof2] = fit(hist_Bin, hist_Values, Gaussian2);
     disp(strcat('For the Gaussian fit, R^2=', num2str(100*gof2.rsquare), '%'))
@@ -113,16 +107,16 @@ if NbrGaussianFit == 2
     
     BinFit = min(hist_Bin) : 0.01 : max(hist_Bin);
     
-    if fitobject2.x01 < fitobject2.x02
-        D_mean = [fitobject2.x01, fitobject2.x02];
-        Idx_Bin = find(BinFit >= fitobject2.x01 & BinFit <= fitobject2.x02);
-        GaussianFit1 = Gaussian(fitobject2.s1, fitobject2.x01, fitobject2.A1, BinFit);
-        GaussianFit2 = Gaussian(fitobject2.s2, fitobject2.x02, fitobject2.A2, BinFit);
+    if fitobject2.x1 < fitobject2.x2
+        D_mean = [fitobject2.x1, fitobject2.x2];
+        Idx_Bin = find(BinFit >= fitobject2.x1 & BinFit <= fitobject2.x2);
+        GaussianFit1 = Gaussian(fitobject2.s1, fitobject2.x1, fitobject2.A1, BinFit);
+        GaussianFit2 = Gaussian(fitobject2.s2, fitobject2.x2, fitobject2.A2, BinFit);
     else
-        D_mean = [fitobject2.x02, fitobject2.x01];
-        Idx_Bin = find(BinFit >= fitobject2.x02 & BinFit <= fitobject2.x01);
-        GaussianFit1 = Gaussian(fitobject2.s2, fitobject2.x02, fitobject2.A2, BinFit);
-        GaussianFit2 = Gaussian(fitobject2.s1, fitobject2.x01, fitobject2.A1, BinFit);
+        D_mean = [fitobject2.x2, fitobject2.x1];
+        Idx_Bin = find(BinFit >= fitobject2.x2 & BinFit <= fitobject2.x1);
+        GaussianFit1 = Gaussian(fitobject2.s2, fitobject2.x2, fitobject2.A2, BinFit);
+        GaussianFit2 = Gaussian(fitobject2.s1, fitobject2.x1, fitobject2.A1, BinFit);
     end
     
     Diff = abs(GaussianFit1(Idx_Bin) - GaussianFit2(Idx_Bin));
@@ -134,7 +128,7 @@ if NbrGaussianFit == 2
     % trajectories and MSD between the two populations.
     % -------------------------------------------------
     
-    GaussianFitAll = Gaussian2(fitobject2.s1, fitobject2.x01, fitobject2.A1, fitobject2.s2, fitobject2.x02, fitobject2.A2, BinFit);
+    GaussianFitAll = Gaussian2(fitobject2.s1, fitobject2.x1, fitobject2.A1, fitobject2.s2, fitobject2.x2, fitobject2.A2, BinFit);
     
     Idx_1 = LogDapp(:,1) < x_Inter;
     MSD_all_1 = MSD_all(Idx_1);
