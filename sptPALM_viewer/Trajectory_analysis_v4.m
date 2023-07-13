@@ -29,6 +29,7 @@ MinNPoint = h.MinNumberPoints; % Minimum number of frames for each trajectory
 MinTrajLength_MSDCalculation = str2double(get(h.MinTrajLength, 'String')); % Minium number of frames for the trajectories used for the calculation of the MSD
 AcquisitionTime = str2double(get(h.AcquisitionTime, 'String')); % in ms
 PixelSize = str2double(get(h.PixelSize, 'String')); %  in um
+DetectorSize = str2double(get(h.DetectorSize, 'String')); %  in pixels
 MaxDisplayTime = str2double(get(h.MaxDisplayTime, 'String')); % The MSD curve will be displayed only from zero to this value in s
 p = str2double(get(h.NumberPointsMSDFit, 'String')); % Use the first "p" points of the MSD to estimate the Dapp
 % MinNPointMSD = str2double(get(h.MinimumNumberPointsMSD, 'String')); % Minimum number of points used to calculate each values of the MSD
@@ -251,6 +252,10 @@ if Plot_Traj
     Color = jet;
     ntraj_color = ceil(NTraj_ROI/size(Color,1));
     
+    % plot each single trajectories. If no image was loaded, the
+    % trajectories are plotted after conversion from pixel to µm. Else, the
+    % trajectories are plotted in pixel. 
+    % ----------------------------------
     for ntraj = 1 : NTraj_ROI
         
         if isfield(h, 'AvIm')
@@ -261,7 +266,6 @@ if Plot_Traj
             Y = Reconstructed_Traj_ROI{ntraj}(3,:);
         end
         line(Y, X, 'Color', Color(ceil(ntraj/ntraj_color),:),'LineWidth',1)
-        
     end
     
     if isfield(h, 'AvIm')
@@ -272,7 +276,8 @@ if Plot_Traj
     else
         set(gca,'YDir','reverse');
         AxisLimits = axis;
-        Box = [AxisLimits(1), AxisLimits(3), AxisLimits(2)-AxisLimits(1), AxisLimits(4)-AxisLimits(3)];
+        Box = [0, 0, DetectorSize*PixelSize, DetectorSize*PixelSize];
+        % Box = [AxisLimits(1), AxisLimits(3), AxisLimits(2)-AxisLimits(1), AxisLimits(4)-AxisLimits(3)];
         rectangle('Position', Box, 'EdgeColor', [0 0 0], 'LineWidth', 2)
         
         ScaleBar = [AxisLimits(1)+1, AxisLimits(3)+1, 1, 0.1];
