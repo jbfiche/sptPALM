@@ -6,7 +6,7 @@
 %
 % JB Fiche
 % July, 2022
-% Last update : 2022/07/19
+% Last update : 2024/02/13
 % fiche@cbs.cnrs.fr
 % -------------------------------------------------------------------------
 % Purpose: Load the data files obtained as output from the newest version 
@@ -80,7 +80,11 @@ switch Launch_Analysis
         for nfile = NFiles : -1 : 1
             try
                 n_file = NFiles - nfile + 1;
-                [m, ntracks] = importTrackMateTracks_v1(FileToAnalyse{nfile}, n_file); % Load the results of the TrackMate analysis file
+                if strcmp(h.Data_FileName.String(end-2:end), 'xml') == 1
+                    [m, ntracks] = importTrackMateTracks_xml_v0(FileToAnalyse{nfile}, n_file);
+                else
+                    [m, ntracks] = importTrackMateTracks_csv_v1(FileToAnalyse{nfile}, n_file); % Load the results of the TrackMate analysis file
+                end
                 Total_tracks = Total_tracks + ntracks;
                 
                 if size(m,1)>1
