@@ -26,7 +26,7 @@ sys.setdefaultencoding('utf-8')
 # ----------------------------------------------
 # Indicate the parameters for the spot detection
 # ----------------------------------------------
-data_folder = "C:\Users\sCMOS-1\Desktop\Test_data\Raw_data"
+data_folder = "C:\Users\sCMOS-1\Desktop\Test_data"
 object_diameter = 5 # RADIUS of the searched objects in pixels
 quality_threshold = 2.5
 use_median_filetering = True
@@ -44,7 +44,7 @@ max_frame_gap = 3
 # --------------------------------------------------------
 # Look for all the tif files within the selected directory
 # --------------------------------------------------------
-data_files = glob(os.path.join(data_folder, "*.tif"))
+data_files = glob(os.path.join(data_folder,"**", "*.tif"))
 
 for data_file in data_files:
 
