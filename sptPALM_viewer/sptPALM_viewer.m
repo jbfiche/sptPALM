@@ -6,7 +6,7 @@
 %
 % JB Fiche
 % Creation : 2014
-% Last update : 2023/06/26
+% Last update : 2024/02/13
 %
 % fiche@cbs.cnrs.fr
 % -------------------------------------------------------------------------
@@ -185,20 +185,25 @@ h = sptPALM_initialize(h, 'Reset_all');
         Soft = get(h.TrackingSoftware, 'Value');
         switch Soft
             case 1
-                set(h.Data_FileName, 'String', '*.csv');
+                set(h.Data_FileName, 'String', '*_track.csv');
                 set(h.Saving_file_name, 'String', 'TrackMate_sptPALM_analysis.mat');
                 set(h.LoadData, 'String', 'Load TrackMate files');
                 set(h.LoadData, 'callback', @LoadTrackMate);
             case 2
+                set(h.Data_FileName, 'String', '*.xml');
+                set(h.Saving_file_name, 'String', 'TrackMate_sptPALM_analysis.mat');
+                set(h.LoadData, 'String', 'Load TrackMate files');
+                set(h.LoadData, 'callback', @LoadTrackMate_xml);
+            case 3
                 set(h.Data_FileName, 'String', '*.csv');
                 set(h.Saving_file_name, 'String', 'TrackMate_sptPALM_analysis.mat');
                 set(h.LoadData, 'String', 'Indicate data folder');
                 set(h.LoadData, 'callback', @BatchTrackMate);
-            case 3
+            case 4
                 set(h.Data_FileName, 'String', '*.mat');
                 set(h.Saving_file_name, 'String', 'MTT_sptPALM_analysis.mat');
                 set(h.LoadData, 'String', 'Load MTT files');
-                set(h.LoadData, 'callback', @LoadMTT);
+                set(h.LoadData, 'callback', @LoadMTT); 
         end
     end
 
@@ -244,7 +249,30 @@ h = sptPALM_initialize(h, 'Reset_all');
         if isequal(Repeat_Analysis, 'Proceed')
             if h.Total_tracks>0
                 clear_display_axis
-                h = ReconstructTraj_TrackMate_v7(h);
+                h = ReconstructTraj_TrackMate_csv_v7(h);
+                h_backup_analysis = h;
+            else
+                hwarn = warndlg('There was no tracks found in the selected file(s)');
+                uiwait(hwarn)
+                delete(hwarn)
+            end
+        end
+    end
+
+%% Load TrackMate files (output as xml file)
+%% =========================================
+    function LoadTrackMate_xml(~,~)
+        
+        clc
+        h = sptPALM_initialize(h, 'Reset_all');
+        h.ResultsFileName = h.Saving_file_name.String;
+        
+        [h, Repeat_Analysis] = Load_TrackMate_Tracking_Files_v1(h);
+        
+        if isequal(Repeat_Analysis, 'Proceed')
+            if h.Total_tracks>0
+                clear_display_axis
+                h = ReconstructTraj_TrackMate_xml_v6(h);
                 h_backup_analysis = h;
             else
                 hwarn = warndlg('There was no tracks found in the selected file(s)');
@@ -283,7 +311,7 @@ h = sptPALM_initialize(h, 'Reset_all');
             
             if h.Total_tracks>0
                 clear_display_axis
-                h = ReconstructTraj_TrackMate_v7(h);
+                h = ReconstructTraj_TrackMate_csv_v7(h);
                 h_backup_analysis = h;
             else
                 hwarn = warndlg('There was no track found in the selected file(s)');
