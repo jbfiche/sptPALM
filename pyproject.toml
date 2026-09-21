@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sptpalm"
+version = "0.1.0.dev0"
+description = "Analysis of single-particle tracking (sptPALM) data: MSD and diffusion coefficient distributions from TrackMate tracks."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { file = "LICENSE" }
+authors = [
+    { name = "Claude (Anthropic)" },
+    { name = "JB Fiche", email = "fiche@cbs.cnrs.fr" },
+]
+dependencies = [
+    "numpy>=1.22",
+    "scipy>=1.8",
+    "pandas>=1.4",
+    "matplotlib>=3.5",
+]
+
+[project.optional-dependencies]
+image = ["tifffile"]
+gui = ["PySide6"]
+test = ["pytest"]
+
+[project.scripts]
+sptpalm = "sptpalm.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src", "tests"]

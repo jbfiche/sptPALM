@@ -1,0 +1,61 @@
+# ---------------------------------------------------------------------------
+# Python
+# ---------------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.ipynb_checkpoints/
+
+# ---------------------------------------------------------------------------
+# MATLAB (autosave and backup files)
+# ---------------------------------------------------------------------------
+# Note: files already tracked by git (e.g. sptPALM_viewer/*.asv, *.m~) stay
+# tracked until removed with `git rm --cached <file>`.
+*.asv
+*.m~
+*.mex*
+slprj/
+octave-workspace
+
+# ---------------------------------------------------------------------------
+# Editors / OS
+# ---------------------------------------------------------------------------
+.vscode/
+.idea/
+*.swp
+*~
+.DS_Store
+Thumbs.db
+
+# ---------------------------------------------------------------------------
+# Example data: keep the small TrackMate spot tables, ignore the heavy files.
+# Remove a line below if you want to version that kind of file.
+# ---------------------------------------------------------------------------
+# Raw movies (about 270 MB each)
+examples/**/Raw_data/
+*.tif
+*.tiff
+# TrackMate xml exports (about 15 MB each)
+examples/**/*.xml
+# MATLAB results files (about 40 MB each)
+examples/**/*.mat
+
+# ---------------------------------------------------------------------------
+# Output produced when running the analysis on your own data
+# ---------------------------------------------------------------------------
+output/
+outputs/
+results/
+*_sptPALM_analysis.h5
+*_sptPALM_analysis.npz
