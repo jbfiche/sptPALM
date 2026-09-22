@@ -1,0 +1,32 @@
+The following parameters are only the one used for the sptPALM_ viewer analysis
+
+
+ Maximum number of blinks : 3.00 
+
+ Minimum length trajectory (frame) : 7.00
+
+ Maximum display time for the MSD (s) : 0.50
+
+ Number of points used to calculate the apparent D : 4.00
+
+ Maximum accepted distance separating two consecutive detections :  NaN
+
+
+ Number of movies analyzed : 10
+
+ Acquisition time (ms) : 20.00
+
+ Pixel size (nm) : 102.00
+
+
+ Initial number of trajectories : 22925.00
+
+ Number of trajectories after filtering for the blinking and duration : 5783.00
+
+ Number of trajectories after ROI selection : 5783.00
+
+ Number of trajectories validated for MSD calculation : 5681.00
+
+ Number of trajectories validated for the Dapp calculation : 5227.00
+
+ Density of tracks detected (/um²) :  NaN
