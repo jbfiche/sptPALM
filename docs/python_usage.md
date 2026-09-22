@@ -81,3 +81,4 @@ pytest
 
 `tests/test_reference.py` compares the results with the MATLAB outputs stored in `examples/`
 (track numbers, all apparent diffusion coefficients and the MSD curves of both populations).
+See `docs/matlab_python_comparison.md` for a figure-by-figure version of that comparison.

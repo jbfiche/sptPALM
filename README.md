@@ -1,126 +1,156 @@
-sptPALM_viewer is a Matlab software used to analyze and visualize single particle tracking data. The software does not work on the raw images but on the tracks coordinates reconstructed by either **MTT** or **TrackMate** software (latest version v7 or the TrackMate batcher). If TrackMate is used, make sure the images width/height are set to pixel (and no predefined values in nm or µm).
+# sptPALM
 
-sptPALM_viewer was written in Matlab2019a and was tested on either Windows 10 or Linux (Ubuntu 18.04.3) running computers. Compiled version for windows is available on demand. The compiled version will necessitate to download compiler for the Mathorks website (installation procedure is attached to the compiled software). This step should require <20 minutes to download and install. 
+Analysis of single-particle tracking (sptPALM) data: track filtering, MSD and
+apparent-diffusion-coefficient calculation, and population fitting from
+**TrackMate** tracks.
 
-To launch the GUI, either clone the GitHub repository and execute the **sptPALM_viewer.m** script or launch the compiled version. On normal computer, launching the compiled software will take <1minute. 
+This repository is being converted from the original MATLAB software
+(`sptPALM_viewer`, still available in the `legacy_matlab` branch and in the
+`sptPALM_viewer/` folder here) to a Python package, `sptpalm`, so the tool can
+run without a MATLAB license and stay easy to maintain. The Python version
+drops support for the older **MTT** tracker and works from TrackMate tracks
+only. See `docs/python_conversion_plan.md` for the full comparison with the
+MATLAB code and `DEVLOG.md` for a dated history of the conversion.
 
-Two windows should appear :
+Status: the headless analysis core (loading, filtering, MSD, diffusion
+coefficients, population fits, text/plot outputs, command line) is done and
+validated against the MATLAB outputs. The GUI has not been ported yet — see
+`docs/python_conversion_plan.md` for the plan.
 
-- sptPALM_Control_Panel - the GUI
-- sptPALM_Display_Panel - the window where all the plots/images will be displayed
+## Input data
 
-The control panel is divided into six sections :
+The package reads TrackMate "all spots" CSV tables (one file per movie),
+exported with **File > Export tracks to CSV** or the TrackMate batcher, with
+image dimensions calibrated in pixels (not nm/µm). Positions are converted to
+µm using the pixel size you provide.
 
-1. **Loading data** where the user is indicating the acquisition parameters as well as the type of data to analyze (MTT or TrackMate) 
-2. **Analysis parameters** is where the parameters for the calculation of the MSD/Dinst are selected
-3. **Diffusion analysis** is where an analysis can be launched and previous results plotted
-4. The **Statistics** section is indicating general information regarding the number of files loaded, the number of tracks analyzed etc.
-5. The **Visualization tool** can be used to overlay the acquired images with the reconstructed tracks
-6. The **Simulation of sptPALM experiments** section can be used to simulate simple Brownian motion experiments with either one or two populations with specific diffusion properties. 
+## Installation
 
-# Launch a first analyzis
+Requires Python ≥ 3.9. From the root of the repository, on the
+`python_conversion` branch:
 
-1. To start an analysis, indicate first the **acquisition time in ms** and the **pixel size in µm** for the experiment. Indicate the name of the **Results file** where all the results will be saved (the default name is *MTT_sptPALM_analysis.mat*). 
+```bash
+# with uv (recommended)
+uv venv .venv --python 3.12
+source .venv/bin/activate
+uv pip install -e ".[test]"
 
-   
+# or with plain pip, in a virtual environment of your choice
+python -m venv .venv
+source .venv/bin/activate
+pip install -e ".[test]"
+```
 
-2. Select the format of the track files by selecting either MTT or TrackMate. Then click on **Load MTT/TrackMate files** and indicate the folder where the data are saved. Doing so:
-   - all the .mat (for MTT) or .csv (for TrackMate) in the indicated folder will be loaded. Note that for TrackMate, the file required for the analysis is the **<u>spot table</u>**.
+`.[test]` also installs `pytest` so you can run the test suite. Two other
+optional extras are available if/when you need them: `.[image]` (`tifffile`,
+for reading movies) and `.[gui]` (`PySide6`, for the future GUI).
 
-   - The path to the folder will be indicated at the top of the sptPALM_Control_Panel window
+## Running an analysis
 
-   - The number of files and the number of tracks loaded will be indicated in the Statistics section
+### Command line
 
-   - The cumulative distribution of the *tracks length* will be plotted and saved (**Cumulative_Distribution_LengthStep.png**) in the same folder as well as the *distribution of all trajectories* duration (**Trajectories_duration.png**)
+```bash
+sptpalm analyze examples/Test_data/TrackMate_v7_batcher_results \
+    --pattern "AC*-spots.csv" --dt-ms 20 --pixel-size-um 0.102
+```
 
-     
+This reads every CSV file matching `--pattern` in the given folder,
+reconstructs and filters the tracks, computes the MSD and apparent diffusion
+coefficient of each track, fits the log10(D) distribution, and writes the
+results to `<folder>/sptpalm_results` (change with `--out`):
+`Saved_Diffusion_Coeff.txt`, `Saved_MSD.txt`, `Parameters_analysis.txt`, and
+the figures `Cumulative_Distribution_LengthStep.png`,
+`Trajectories_duration.png`, `Diffusion_distribution_*.png`,
+`MSD_Curves.png` (same names as the MATLAB version).
 
-3. Set the analysis parameters. By default (see **analysis parameters** section) :
-   - The *minimum track length is 7 frames*
+Add `--legacy` to reproduce the MATLAB numbers exactly (see "Differences with
+the MATLAB version" below). Run `sptpalm analyze --help` for the full list of
+options (`--max-blinks`, `--min-points`, `--method`, `--gaussians`, ROI and
+plotting options, etc.).
 
-   - A *maximum of 3 consecutive frames* for the blinking
+### From Python
 
-   - The calculation method for the instantaneous Diffusion is set to *average MSD* by default - this method is faster and allows for a quick survey of the data. However, the *fit method* is more accurate, particularly for the low values of D. For the fit, by default, the *first 4 points of the MSD* are used.
+```python
+from sptpalm import AnalysisParams, ROI, run_analysis
+from sptpalm.io.trackmate import load_trackmate_folder
+from sptpalm.io.export import write_results
 
-     
+tracks, info = load_trackmate_folder(
+    "examples/Test_data/TrackMate_v7_batcher_results",
+    pixel_size_um=0.102,
+    pattern="AC*-spots.csv",
+)
+params = AnalysisParams(acquisition_time_ms=20, pixel_size_um=0.102)
 
-4. Check that the parameter **Results file name** is correct. If you want the program to plot the trajectories at the end of the analysis, check the **Plot trajectories** option (by default, this option is unchecked since this step can be time/memory consuming). Then launch the analysis by pushing the **Analyze trajectories** button. The program will ask whether we want to define a ROI. If yes :
+results = run_analysis(tracks, params)   # {"all": AnalysisResult}
+res = results["all"]
+res.n_dapp, res.fit.centers, res.fit.fast_fraction
 
-   - Select a movie or a single image associated to the data. If a movie is selected, the program will calculate an average image.
+write_results(results, "out/")
+```
 
-   - The average positions of the tracks are overlaid to the selected image. A ROI can be manually drawn by clicking on the image in order to define the vertices of a polygon. To close the polygon, click-left on the last position and the ROI will be defined automatically.
+Multiple ROIs (polygons in image pixels, `x` = column, `y` = row) can be
+analysed pooled together or separately:
 
-   - When needed, several ROIs can be defined. 
+```python
+cells = [ROI("cell 1", [(10, 10), (80, 10), (80, 90), (10, 90)]),
+         ROI("cell 2", [(120, 30), (200, 30), (200, 110)])]
+pooled   = run_analysis(tracks, params, rois=cells)                       # {"pooled": ...}
+separate = run_analysis(tracks, AnalysisParams(20, 0.102, roi_mode="separate"), rois=cells)
+write_results(separate, "out/")   # one sub-folder per ROI + Summary_ROIs.csv
+```
 
-     
+See `docs/python_usage.md` for the full MATLAB-to-Python parameter table and
+a longer description of the differences with the MATLAB version.
 
-   Note that when a ROI is defined, the track density will be computed within the ROI and displayed in the **Statistics** section. 
+## Tests
 
-   
+```bash
+pytest
+```
 
-5. The distribution of instantaneous diffusion coefficient is plotted and the program asks whether we want to fit this distribution with a **single Gaussian model** or a **two Gaussian model**. In the latter case, the user will click where the separation between the two populations is expected. 
+`tests/test_core.py` covers the individual pieces (filtering, MSD, fitting,
+...) with synthetic data. `tests/test_reference.py` compares the package's
+output against the MATLAB results stored in
+`examples/Test_data/TrackMate_v7_batcher_results` (track counts at every
+stage, all apparent diffusion coefficients, and the MSD curves of both
+populations) — it is skipped automatically if that example data is not
+present. Set `SPTPALM_EXAMPLES` to point elsewhere if you keep the reference
+data in a different location.
 
-   
+## Differences with the MATLAB version
 
-6. At the end of the analysis, the following documents can be found in the folder :
+Every corrected behaviour below has a legacy switch
+(`legacy=True` in the Python API, `--legacy` on the command line) that
+reproduces the MATLAB numbers exactly, so old analyses stay reproducible.
 
-   - A plot of the diffusion coefficient distribution with the Gaussian fit (Diffusion_distribution_XXX_Method.png)
-   - A plot of the MSD (MSD_Curves.png)
-   - A file containing all the parameters used for the analysis (Parameters_analysis.txt)
-   - A file with all the diffusion coefficients (Saved_Diffusion_Coeff.txt)
-   - A .mat file with all the results of the analysis that could be reloaded later in the program for further analysis.
+* **Track length.** The MATLAB filter compared point *indices* instead of
+  frame numbers, so `MinTrajLength = 7` actually required 8 detections and
+  the 75% "populated fraction" rule had no effect. The Python version has
+  three explicit, independent criteria (`min_points`, `min_duration_frames`,
+  `min_fraction`); the defaults reproduce the MATLAB results.
+* A gap longer than `max_blinks` right before the **last** detection of a
+  track now cuts the track there (MATLAB glued it to the previous segment).
+* The MSD-point threshold is now a hard `>=` (MATLAB used a strict `>`).
+* Gaussian fit widths are reported as standard deviations (the MATLAB
+  parametrisation was not the standard form); with a single population the
+  MSD is computed on tracks within 3σ of the peak (MATLAB: about 2.1σ).
+* Overlapping ROIs: as in MATLAB, a track whose mean position falls in
+  several ROIs is excluded (now reported as a count).
+* Multiple ROIs can be analysed **pooled** or **separately** (new feature,
+  not in MATLAB).
+* Speed: MSD, diffusion coefficients and fits are vectorised. On the example
+  dataset (23,000 tracks, 10 movies) loading takes about 2 s and the analysis
+  well under 1 s, versus about a minute (average method) to several minutes
+  (fit method) for the MATLAB version.
 
+## Legacy MATLAB version
 
-
-NB: for the demo, loading the files should take less than 1 min for MTT files and a few minutes for TrackMate files. For the analysis, the *Average method* should take < 1min wihout defining any ROI and plotting the trajectories. The *fit* method is however slower and should take a few minutes (<4min). 
-
-# Load previous analysis
-
-To load a previous analysis :
-
-1. Press the **Load previous analysis** button and select the file you want to load. If the selected file has the expected format, all the previous data will loaded and displayed. 
-2. A previous analysis can also be loaded by pressing the **Load MTT/TrackMate files** button. In that case, if in the selected folder there is a result file with the same name that **Results file name**, the program will ask whether we want to load the previous analysis or simply start again.
-3. The results of the previous analysis can be selected and plotted using the **Plot previous analysis** button. Simply use the menu to select the type of data:
-   - **D distribution** plot the distribution of log10(Dinst)
-   - **MSD curve** the MSD curve
-   - **Trajectories plot (all)** plot the trajectories without specific color coding. If ROIs was defined, only the trajectories within the ROIs are plotted 
-   - **Trajectories plot (population)** will plot the trajectories of the two populations obtained fitting the Dinst distribution. The slow population will be plotted in blue, the fast in orange. 
-
-Note that you can launch a new analysis but **ALL** the previous results will be lost if the name of the **Results file name** is not updated. 
-
-# Visualization tool
-
-This tool is working as follows :
-
-1. Select the movie you want to display
-2. Select the associated MTT/TrackMate data (should be the same number of frames)
-3. Indicate the **Minimum track length** you want to display (1 means that all data will be displayed. 7 will mean that only the tracks that are at least 7 frames long will be displayed)
-4. You can adjust the contrast using the **Upper and lower limit** slide-bars
-5. You can select the frame by either using the **Select frame** slide bar or directly entering the frame number
-6. You can create a rectangular ROI by clicking on the **Create ROI** button.
-
-For each image, the tracks are overlaid with a color code indicating whether the track is starting (blue) or finishing (red). It is also possible to save the data as a .avi movie. In that case, indicates the **first and last** frame numbers as well as the title of the output movie. 
-
-# Simulation of sptPALM experiments
-
-A simulation of a sptPALM experiment can be launched as follows :
-
-1. Indicate the average diffusion coefficient (in µm^2/s)
-
-2. If you are working with a mixture of two populations, indicate the fraction of protein #1 as well (in %)
-
-3. Indicate the number of frames you want to saved (by default 1000 - the program will create several movies, each with a maximum of 1000 frames)
-
-4. Emissions parameters can be modified by pressing the **Change emission parameters** button. Those parameters are used to define the emission properties of the fluorescent proteins as well as the parameters used to analyze the simulated data. 
-
-5. The **acquisition parameters** can also be tuned in order to match the properties of the detector used for the acquisition. The size of the simulated images is also defined there.
-
-6. When **Launch simulation** is pressed, the program is :
-
-   - Calculating all the events and trajectories for each frame using the parameters indicated in **emission parameters**
-   - Running MSD and instantaneous diffusion calculation with the parameters indicated in **emission parameters**
-   - Finally, it computes all the images using the parameters indicated in **acquisition parameters**.
-
-   
-
-For more information regarding the simulations, check the document sptPALM_simulation.pdf in the folder Doc_simulation.
+The original MATLAB software (`sptPALM_viewer`, MATLAB R2019a, tested on
+Windows 10 and Ubuntu 18.04) is preserved as-is in the `legacy_matlab` branch
+and in the `sptPALM_viewer/` folder. It supports both MTT and TrackMate
+tracks and includes a GUI (control panel + display panel), a visualization
+tool to overlay tracks on the acquired images, and a Brownian-motion
+simulation module — none of which are ported to Python yet (see
+`docs/python_conversion_plan.md`, phases 2 and 3). To use it, clone the
+repository, check out `legacy_matlab`, and run `sptPALM_viewer.m` in MATLAB.

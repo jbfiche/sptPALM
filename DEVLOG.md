@@ -45,3 +45,18 @@ Branch: `python_conversion`
 - Validation on `TrackMate_v7_batcher_results` in legacy mode: 22925 / 5783 / 5681 / 5227 tracks, all D values, and the mean/median/SEM MSD curves of both populations match MATLAB (relative difference < 1e-9). Corrected defaults: 5783 / 5765 / 5294 tracks, log10(D) = -1.825 and -1.043, mobile fraction 74.7 %. Loading takes about 2 s and the analysis about 0.1 s.
 - Not done yet: saving/loading a full results file, Tesseler and localisation exports, visualization tool, ROI drawing on an image, simulation module, GUI, XML reader, single-stack `export-spots.csv` check.
 - Git: no shell is available in this session, so nothing has been committed. Files are written in the working tree of branch `python_conversion`.
+
+## 2026-09-21: branch layout
+
+- JB reworked the branches by hand. `master`, `legacy_matlab` and `python_conversion` all pointed at the same commit (a56b2ea, the MATLAB code, equal to `origin/master`); HEAD is on `python_conversion`. `legacy_matlab` freezes the MATLAB version, `python_conversion` holds this work. Nothing was pushed yet at that point.
+- The repository was re-cloned, which dropped the hidden `.gitignore` from the working tree (so `git add .gitignore` failed). It was written again.
+
+## 2026-09-22: README
+
+- `README.md` still described only the MATLAB GUI. Rewritten to lead with the Python package: overview, Installation (uv or pip, `.[test]`/`.[image]`/`.[gui]` extras), Running an analysis (CLI and Python API, using the example dataset), Tests, and the differences-with-MATLAB summary (moved here from `docs/python_usage.md`, which keeps the full parameter table). The original MATLAB walkthrough is kept, trimmed, under "Legacy MATLAB version", pointing to the `legacy_matlab` branch and `sptPALM_viewer/`.
+
+## 2026-09-22: MATLAB vs Python validation report
+
+- Added `docs/matlab_python_comparison.md` and `docs/validation/*.png`: side-by-side comparison of the Python package against the MATLAB results already saved in `examples/Test_data/TrackMate_v7_batcher_results` (`sptpalm analyze --legacy` vs the corrected defaults vs MATLAB's own `Saved_Diffusion_Coeff.txt` / `Saved_MSD.txt` / PNGs).
+- Confirms, with figures, what phase 1 validation established numerically: in legacy mode, track counts match at every stage, the 5227 apparent D values match MATLAB's to ~1e-14, the MSD curves of both populations match to ~1e-13, and MATLAB's own two-Gaussian fit figure (log10(D) = -1.81 / -1.04, mobile fraction 75%) matches the Python fit (-1.814 / -1.042, 74.9%) — this is the first time the MATLAB fit numbers themselves (read off its PNG, not just the reproduced D/MSD values) were compared directly, since the `.mat` results file is MATLAB v7.3 (HDF5) and `h5py` is not installable in this sandbox (no network access to PyPI/apt beyond the pre-approved index).
+- Also shows the (expected, small) effect of the corrected defaults: 5294 vs 5227 D-valid tracks, same distribution shape.
